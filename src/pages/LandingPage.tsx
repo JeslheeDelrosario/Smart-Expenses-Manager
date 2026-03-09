@@ -1,5 +1,5 @@
 // src\pages\LandingPage.tsx
-import { HeroGeometric } from "@/components/ShapeLandingHero"; // Fix the import path - match your actual filename
+import { HeroGeometric } from "@/components/ShapeLandingHero"; 
 
 export default function Landing() {
   return (

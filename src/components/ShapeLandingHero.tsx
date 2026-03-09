@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Circle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 function ElegantShape({
   className,
@@ -18,6 +19,7 @@ function ElegantShape({
   rotate?: number;
   gradient?: string;
 }) {
+
   return (
     <motion.div
       initial={{
@@ -71,13 +73,16 @@ function ElegantShape({
 
 function HeroGeometric({
   badge="Finance Simplified",
-  title1="Smart Expense",
+  title1="Smart Expenses",
   title2="Manager",
 }: {
   badge?: string;
   title1?: string;
   title2?: string;
 }) {
+  // Hook for navigation between routes
+  const navigate = useNavigate();
+  
   // Define variants inside the component where they're used
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
@@ -187,6 +192,20 @@ function HeroGeometric({
               Crafting exceptional digital experiences through innovative design
               and cutting-edge technology.
             </p>
+          </motion.div>
+
+          <motion.div
+            custom={3} // Next in animation sequence
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <button 
+              onClick={() => navigate('/login')}
+              className="px-8 py-4 bg-gradient-to-r from-indigo-500 to-rose-500 text-white font-medium rounded-full hover:scale-105 transition-transform duration-200 shadow-lg shadow-indigo-500/25"
+            >
+              Get Started
+            </button>
           </motion.div>
         </div>
       </div>
