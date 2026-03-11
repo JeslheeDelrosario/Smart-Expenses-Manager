@@ -87,22 +87,33 @@ yarn dev
 npm run dev
 
 
-src/
-├── assets/               
-├── components/           
-│   ├── landing/  
-|   |     └── Hero.tsx, Features.tsx , HowItWorks.tsx           
-│   └── ui/ 
-|       └── shape-landing-hero.tsx         
-├── features/             
-│   ├── expenses/
-│   ├── dashboard/
-│   ├── budget/
-│   └── ...
-├── hooks/                # custom hooks
-├── lib/                  # utilities, formatters, api
-├── pages/                # or app/ if using app router
-├── routes/               # route config (if using react-router)
-├── store/                # state management (zustand slices / redux)
-├── types/                # shared TypeScript types
-└── App.tsx / main.tsx
+
+## Project Structure ##
+Smart Expense Manager/
+├─ components.json
+├─ eslint.config.js
+├─ index.html
+├─ package.json
+├─ package-lock.json
+├─ postcss.config.js
+├─ tailwind.config.js
+├─ tsconfig.app.json
+├─ tsconfig.json
+├─ tsconfig.node.json
+├─ vite.config.ts
+├─ README.md
+├─ public/
+│  └─ vite.svg
+└─ src/
+   ├─ App.tsx
+   ├─ index.css
+   ├─ main.tsx
+   ├─ assests/
+   ├─ components/
+   │  └─ ShapeLandingHero.tsx
+   ├─ features/
+   ├─ lib/
+   │  └─ utils.ts
+   └─ pages/
+      ├─ LandingPage.tsx
+      └─ Login.tsx
