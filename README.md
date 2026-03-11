@@ -2,8 +2,8 @@
 
 **A modern, smart personal expense tracker built to help you understand, control, and optimize your spending habits.**
 
-![App screenshot / hero image placeholder](https://via.placeholder.com/800x400?text=Smart+Expenses+Manager+Dashboard)  
-*(Replace with real screenshot(s) later – dashboard, mobile view, charts, etc.)*
+<img width="1910" height="915" alt="image" src="https://github.com/user-attachments/assets/5aa672a3-26a1-40c8-956f-14a35fd79608" />
+
 
 ## 🎯 Project Goal & Vision
 
@@ -117,3 +117,4 @@ Smart Expense Manager/
    └─ pages/
       ├─ LandingPage.tsx
       └─ Login.tsx
+      └─ Signup.tsx
