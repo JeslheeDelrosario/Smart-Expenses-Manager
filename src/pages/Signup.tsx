@@ -1,58 +1,62 @@
 // src/pages/Signup.tsx
-import { useState } from 'react';
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from 'framer-motion';
-import type { Variants } from 'framer-motion';
-import { Mail, Lock, User, UserPlus, Eye, EyeOff } from 'lucide-react';
-
+import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
+import { Mail, Lock, User, UserPlus, Eye, EyeOff } from "lucide-react";
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    setError('');
-    setSuccess('');
+
+    setError("");
+    setSuccess("");
 
     // Validation
-    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all fields');
+    if (
+      !formData.fullName ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Please fill in all fields");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
 
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError("Password must be at least 8 characters long");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
@@ -60,29 +64,28 @@ export default function SignupPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      console.log('Signup attempt:', { 
-        fullName: formData.fullName, 
-        email: formData.email, 
-        password: formData.password 
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      console.log("Signup attempt:", {
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
       });
 
-      setSuccess('Account created successfully! Redirecting to login...');
-      
+      setSuccess("Account created successfully! Redirecting to login...");
+
       // Clear form
       setFormData({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
       });
 
       // Optional: Redirect to login after success
       // setTimeout(() => navigate('/login'), 2000);
-      
     } catch {
-      setError('Signup failed. Please try again.');
+      setError("Signup failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -95,15 +98,16 @@ export default function SignupPage() {
       y: 0,
       transition: {
         duration: 0.6,
-        delay: i * 0.1
-      }
-    })
+        delay: i * 0.1,
+      },
+    }),
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4 py-8">
       {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-rose-500/[0.05] blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#818cf8]/[0.05] via-transparent to-[#2d3748]/[0.05] blur-3xl" />
+
       {/* Main signup container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
@@ -112,7 +116,7 @@ export default function SignupPage() {
         className="w-full max-w-md relative z-10"
       >
         {/* Signup card */}
-        <div className="bg-white/[0.03] backdrop-blur-lg rounded-2xl border border-white/[0.08] p-8 shadow-2xl">
+        <div className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-8 shadow-2xl">
           {/* Header section */}
           <motion.div
             custom={0}
@@ -122,15 +126,15 @@ export default function SignupPage() {
             className="text-center mb-8"
           >
             {/* Logo/Icon */}
-            <div className="w-16 h-16 bg-gradient-to-r from-indigo-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <UserPlus className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-[#818cf8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#818cf8]/25">
+              <UserPlus className="w-8 h-8 text-[#0f172a]" />
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-[#e2e8f0] mb-2">
               Create Account
             </h1>
-            <p className="text-white/60 text-sm">
+            <p className="text-[#9ca3af] text-sm">
               Start managing your expenses today
             </p>
           </motion.div>
@@ -146,12 +150,12 @@ export default function SignupPage() {
             >
               <label
                 htmlFor="fullName"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-medium text-[#d1d5db] mb-2"
               >
                 Full Name
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
                 <input
                   id="fullName"
                   name="fullName"
@@ -159,7 +163,7 @@ export default function SignupPage() {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
                   disabled={isLoading}
                 />
               </div>
@@ -174,12 +178,12 @@ export default function SignupPage() {
             >
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-medium text-[#d1d5db] mb-2"
               >
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
                 <input
                   id="email"
                   name="email"
@@ -187,7 +191,7 @@ export default function SignupPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
                   disabled={isLoading}
                 />
               </div>
@@ -202,12 +206,12 @@ export default function SignupPage() {
             >
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-medium text-[#d1d5db] mb-2"
               >
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
                 <input
                   id="password"
                   name="password"
@@ -215,13 +219,13 @@ export default function SignupPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-12 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#d1d5db] transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -230,7 +234,7 @@ export default function SignupPage() {
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-white/40">
+              <p className="mt-1 text-xs text-[#9ca3af]">
                 Must be at least 8 characters
               </p>
             </motion.div>
@@ -244,12 +248,12 @@ export default function SignupPage() {
             >
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-white/80 mb-2"
+                className="block text-sm font-medium text-[#d1d5db] mb-2"
               >
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -257,13 +261,13 @@ export default function SignupPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-white/[0.05] border border-white/[0.1] rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-12 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
                   disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#d1d5db] transition-colors"
                 >
                   {showConfirmPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -304,11 +308,11 @@ export default function SignupPage() {
               animate="visible"
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-indigo-500 to-rose-500 text-white font-medium rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25"
+              className="w-full py-3 bg-[#818cf8] text-[#0f172a] font-semibold rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#818cf8]/25"
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#0f172a]/30 border-t-[#0f172a] rounded-full animate-spin" />
                   Creating account...
                 </>
               ) : (
@@ -328,12 +332,12 @@ export default function SignupPage() {
             animate="visible"
             className="mt-6 text-center"
           >
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-[#9ca3af]">
               Already have an account?{" "}
               <button
                 type="button"
-                className="text-indigo-400 hover:text-indigo-300 transition-colors duration-200"
-                onClick={() => navigate('/login')}
+                className="text-[#818cf8] hover:text-[#818cf8]/80 transition-colors duration-200"
+                onClick={() => navigate("/login")}
               >
                 Sign in
               </button>
@@ -346,19 +350,19 @@ export default function SignupPage() {
             variants={fadeInVariants}
             initial="hidden"
             animate="visible"
-            className="mt-4 text-xs text-center text-white/40"
+            className="mt-4 text-xs text-center text-[#9ca3af]"
           >
             By creating an account, you agree to our{" "}
             <button
               type="button"
-              className="text-indigo-400 hover:text-indigo-300 underline"
+              className="text-[#818cf8] hover:text-[#818cf8]/80 underline"
             >
               Terms of Service
             </button>{" "}
             and{" "}
             <button
               type="button"
-              className="text-indigo-400 hover:text-indigo-300 underline"
+              className="text-[#818cf8] hover:text-[#818cf8]/80 underline"
             >
               Privacy Policy
             </button>

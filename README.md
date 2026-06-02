@@ -2,8 +2,11 @@
 
 **A modern, smart personal expense tracker built to help you understand, control, and optimize your spending habits.**
 
-![App screenshot / hero image placeholder](https://via.placeholder.com/800x400?text=Smart+Expenses+Manager+Dashboard)  
-*(Replace with real screenshot(s) later – dashboard, mobile view, charts, etc.)*
+> **Current Project Phase: Early MVP Development (Phase 1)**  
+> We're in the initial stages of building the foundation for this application. Core authentication and layout infrastructure is being established before implementing the main expense tracking features.
+
+![App screenshot / hero image placeholder](https://via.placeholder.com/800x400?text=Smart+Expenses+Manager+-+Coming+Soon)  
+*(Screenshots will be added as core features are implemented)*
 
 ## 🎯 Project Goal & Vision
 
@@ -19,45 +22,68 @@ Most expense trackers only record what you spent.
 
 It combines clean UX, powerful categorization, visual analytics, and (future) smart insights — all built with **React + TypeScript** for a fast, type-safe, and maintainable codebase.
 
-## ✨ Key Features (Current & Planned)
+## 🚀 Project Roadmap & Current Status
 
-### Current / In Progress
-- Add, edit, and delete expenses quickly
-- Categorize expenses (Food, Transport, Bills, Entertainment, etc.)
-- Support for income entries (to calculate real balance)
-- Dashboard with:
-  - Total balance
-  - Total expenses/income
-  - Expense breakdown by category (pie chart)
-  - Recent transactions list
-- Monthly / weekly summary views
-- Responsive design (mobile + desktop friendly)
-- Data persistence (localStorage for now – future: backend / cloud)
+### Phase 1: Foundation & Authentication (Current - In Progress)
+✅ **Completed:**
+- Project setup with Vite + React + TypeScript
+- Basic routing configuration (React Router v6)
+- Landing page with geometric hero section
+- Login page skeleton
+- Signup page skeleton
+- ShadCN/ui component infrastructure setup
+- Tailwind CSS configuration with animations
 
-### Planned / Upcoming (Smart Features)
-- Monthly budgets per category with progress bars & alerts
-- Visual charts & trends (line chart for spending over time)
-- Smart categorization suggestions (rule-based or future AI)
-- Export data (CSV / PDF)
-- Dark / Light theme toggle
+🔄 **In Development:**
+- Complete authentication flows (login/signup)
+- User interface component library establishment
+- Dashboard layout skeleton
+- Responsive design implementation across all pages
+
+### Phase 2: Core Expense Tracking (Up Next)
+📋 **Planned:**
+- Add, edit, and delete expenses functionality
+- Expense categorization system (Food, Transport, Bills, Entertainment, etc.)
+- Income entry support for balance calculation
+- Basic dashboard with transaction list
+- LocalStorage data persistence
+- Mobile-responsive expense management views
+
+### Phase 3: Analytics & Smart Features
+📋 **Planned:**
+- Interactive charts and data visualizations (Recharts)
+- Monthly budgets per category with alerts
+- Spending trend analysis
+- Data export (CSV/PDF)
+- Dark/Light theme toggle
 - Multi-currency support
-- Cloud sync & user accounts (Firebase / Supabase / custom backend)
-- Receipt photo upload + OCR parsing (optional advanced feature)
 
-## 🛠️ Tech Stack
+### Phase 4: Cloud & Advanced Features
+📋 **Planned:**
+- User authentication backend integration
+- Cloud sync & data persistence
+- Smart AI-powered categorization suggestions
+- Receipt photo upload with OCR parsing
+- Mobile app deployment considerations
 
-| Area            | Technology                          | Purpose                              |
-|-----------------|-------------------------------------|--------------------------------------|
-| Frontend        | React 18+                           | UI library                           |
-| Language        | TypeScript                          | Type safety & better DX              |
-| Styling         | Tailwind CSS / CSS Modules / styled-components | (choose your preference)     |
-| State Management| Zustand / Redux Toolkit / Context   | (choose based on complexity)         |
-| Charts          | Recharts / Chart.js                 | Beautiful & responsive visualizations|
-| Forms           | React Hook Form + Zod               | Validation & performance             |
-| Routing         | React Router v6                     | Navigation                           |
-| Persistence     | localStorage (current)              | Quick MVP data saving                |
-| Build Tool      | Vite                                | Fast dev server & builds             |
-| Linting/Formatting | ESLint + Prettier                | Code quality                         |
+## 🛠️ Current Tech Stack
+
+| Area            | Technology                          | Status                               | Purpose                              |
+|-----------------|-------------------------------------|--------------------------------------|--------------------------------------|
+| Frontend        | React 19                            | ✅ Installed                          | Modern UI library with latest features |
+| Language        | TypeScript ~5.9                     | ✅ Installed                          | Type safety & improved developer experience |
+| Styling         | Tailwind CSS 4.2                    | ✅ Installed                          | Utility-first CSS framework          |
+| UI Components   | shadcn/ui (with tailwind-animate)   | ✅ Configured                         | Reusable, accessible component library |
+| Animations      | Framer Motion 12                    | ✅ Installed                          | Smooth animations and interactions   |
+| Icons           | Lucide React 0.576                  | ✅ Installed                          | Modern icon library                   |
+| Routing         | React Router v7                     | ✅ Installed                          | Client-side navigation                |
+| Build Tool      | Vite 7.3                             | ✅ Installed                         | Fast development server & builds     |
+| Linting         | ESLint 9 + TypeScript-ESLint        | ✅ Configured                         | Code quality enforcement              |
+| **Planned Additions** |                                     |                                      |                                      |
+| State Management| Zustand                             | 📋 Planned                            | Lightweight state management         |
+| Charts          | Recharts                            | 📋 Planned                            | Data visualization & analytics      |
+| Forms           | React Hook Form + Zod               | 📋 Planned                            | Type-safe form validation            |
+| Backend/Auth    | Firebase / Supabase                 | 📋 Planned                            | User authentication & cloud storage  |
 
 ## 🚀 Getting Started
 
@@ -88,32 +114,42 @@ npm run dev
 
 
 
-## Project Structure ##
+## 📁 Current Project Structure
+```
 Smart Expense Manager/
-├─ components.json
-├─ eslint.config.js
-├─ index.html
-├─ package.json
-├─ package-lock.json
-├─ postcss.config.js
-├─ tailwind.config.js
-├─ tsconfig.app.json
-├─ tsconfig.json
-├─ tsconfig.node.json
-├─ vite.config.ts
-├─ README.md
+├─ components.json                 # shadcn/ui configuration
+├─ eslint.config.js                # ESLint configuration
+├─ index.html                      # Entry HTML file
+├─ package.json                    # Dependencies & scripts
+├─ package-lock.json               # Lockfile
+├─ postcss.config.js               # PostCSS configuration
+├─ tailwind.config.js              # Tailwind CSS configuration
+├─ tsconfig.app.json               # App TypeScript config
+├─ tsconfig.json                   # Root TypeScript config
+├─ tsconfig.node.json              # Node TypeScript config
+├─ vite.config.ts                  # Vite build configuration
+├─ README.md                       # Project documentation
 ├─ public/
 │  └─ vite.svg
 └─ src/
-   ├─ App.tsx
-   ├─ index.css
-   ├─ main.tsx
-   ├─ assests/
+   ├─ App.tsx                      # Main app component with routing
+   ├─ index.css                    # Global styles
+   ├─ main.tsx                     # React DOM entry point
+   ├─ assets/                      # Static assets (images, fonts)
    ├─ components/
-   │  └─ ShapeLandingHero.tsx
-   ├─ features/
+   │  └─ ShapeLandingHero.tsx      # Animated landing page hero
    ├─ lib/
-   │  └─ utils.ts
+   │  └─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
    └─ pages/
-      ├─ LandingPage.tsx
-      └─ Login.tsx
+      ├─ LandingPage.tsx           # Main landing page
+      ├─ Login.tsx                 # Login page
+      └─ Signup.tsx                # Signup page
+```
+
+## 🎯 Next Steps for Development
+1. **Build out authentication components** - Complete login and signup forms with validation
+2. **Create main dashboard layout** - Set up the core application shell for logged-in users
+3. **Implement expense data models** - Define TypeScript interfaces for expenses, categories, and users
+4. **Add state management** - Integrate Zustand for global state management
+5. **Build CRUD operations** - Create the ability to add, edit, and delete expenses
+6. **Implement basic charts** - Add Recharts to visualize spending patterns
