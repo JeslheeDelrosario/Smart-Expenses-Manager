@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Mail, Lock, LogIn, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -11,19 +12,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const DEMO_CREDENTIALS = {
-    email: "demo@example.com",
-    password: "demo12345",
-  };
-
-  const handleDemoLogin = () => {
-    setEmail(DEMO_CREDENTIALS.email);
-    setPassword(DEMO_CREDENTIALS.password);
-    setTimeout(() => {
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-    }, 500);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,17 +32,26 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Login attempt:", { email, password });
-      setEmail("");
-      setPassword("");
-      // Redirect to dashboard after successful login
-      navigate("/dashboard");
+      const { data, error: supabaseError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (supabaseError) {
+        setError(supabaseError.message);
+        return;
+      }
+
+      if (data.user) {
+        setEmail("");
+        setPassword("");
+        navigate("/dashboard");
+      }
     } catch {
-      setError("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+       setError("Login failed. Please try again.");
+     } finally {
+       setIsLoading(false);
+     }
   };
 
   const fadeInVariants: Variants = {
@@ -172,14 +169,7 @@ export default function LoginPage() {
               </motion.div>
             )}
 
-            {/* Demo login button */}
-            <motion.button
-              type="button"
-              onClick={handleDemoLogin}
-              className="w-full py-2 bg-[#374151] border border-[#4b5563] text-[#d1d5db] text-sm rounded-lg hover:bg-[#4b5563] transition-all duration-200"
-            >
-              REKTA LOGIN PAR
-            </motion.button>
+
 
             {/* Submit button */}
             <motion.button

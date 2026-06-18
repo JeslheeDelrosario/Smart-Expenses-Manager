@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Mail, Lock, User, UserPlus, Eye, EyeOff } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 export default function SignupPage() {
   const navigate = useNavigate();
@@ -29,6 +30,9 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
+  console.log("Anon key exists:", !!import.meta.env.VITE_SUPABASE_ANON_KEY);
 
     setError("");
     setSuccess("");
@@ -63,32 +67,42 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      console.log("Signup attempt:", {
-        fullName: formData.fullName,
+      const { data, error: supabaseError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+          },
+        },
       });
 
-      setSuccess("Account created successfully! Redirecting to login...");
+      if (supabaseError) {
+         console.error("Supabase signup error:", supabaseError);
+         setError(supabaseError.message);
+         return;
+       }
 
-      // Clear form
-      setFormData({
-        fullName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
+      if (data.user) {
+        setSuccess("Account created successfully! Check your email for verification. Redirecting to login...");
+        
+        // Clear form
+        setFormData({
+          fullName: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
 
-      // Optional: Redirect to login after success
-      // setTimeout(() => navigate('/login'), 2000);
-    } catch {
-      setError("Signup failed. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+        // Redirect to login after 3 seconds
+        setTimeout(() => navigate('/login'), 3000);
+      }
+    } catch (err) {
+       console.error("Unexpected signup error:", err);
+       setError("Signup failed. Please try again.");
+     } finally {
+       setIsLoading(false);
+     }
   };
 
   const fadeInVariants: Variants = {

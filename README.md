@@ -24,19 +24,26 @@ It combines clean UX, powerful categorization, visual analytics, and (future) sm
 
 ## 🚀 Project Roadmap & Current Status
 
-### Phase 1: Foundation & Authentication (Current - In Progress)
+### Phase 1: Foundation & Authentication (✅ Completed)
 ✅ **Completed:**
 - Project setup with Vite + React + TypeScript
-- Basic routing configuration (React Router v6)
+- Basic routing configuration (React Router v7)
 - Landing page with geometric hero section
-- Login page skeleton
-- Signup page skeleton
+- Full functional Login page with Supabase auth
+- Full functional Signup page with Supabase auth
 - ShadCN/ui component infrastructure setup
 - Tailwind CSS configuration with animations
+- **Supabase backend fully integrated** (authentication & database)
+- PostgreSQL database schema with RLS policies
+- User-specific data isolation
+- Automatic default category creation for new users
 
+### Phase 2: Core Expense Tracking (Current - In Progress)
 🔄 **In Development:**
-- Complete authentication flows (login/signup)
-- User interface component library establishment
+- Add, edit, and delete expenses functionality
+- Expense categorization system (Food, Transport, Bills, Entertainment, etc.)
+- Income entry support for balance calculation
+- Basic dashboard with transaction list
 - Dashboard layout skeleton
 - Responsive design implementation across all pages
 
@@ -79,11 +86,13 @@ It combines clean UX, powerful categorization, visual analytics, and (future) sm
 | Routing         | React Router v7                     | ✅ Installed                          | Client-side navigation                |
 | Build Tool      | Vite 7.3                             | ✅ Installed                         | Fast development server & builds     |
 | Linting         | ESLint 9 + TypeScript-ESLint        | ✅ Configured                         | Code quality enforcement              |
+| Backend/Auth    | Supabase                            | ✅ Installed & Integrated             | User authentication & cloud storage  |
+| Database        | PostgreSQL (Supabase)               | ✅ Implemented                        | Relational database with RLS policies |
+| Database SDK    | @supabase/supabase-js               | ✅ Installed                          | Supabase client for frontend integration |
 | **Planned Additions** |                                     |                                      |                                      |
 | State Management| Zustand                             | 📋 Planned                            | Lightweight state management         |
 | Charts          | Recharts                            | 📋 Planned                            | Data visualization & analytics      |
 | Forms           | React Hook Form + Zod               | 📋 Planned                            | Type-safe form validation            |
-| Backend/Auth    | Firebase / Supabase                 | 📋 Planned                            | User authentication & cloud storage  |
 
 ## 🚀 Getting Started
 
@@ -91,25 +100,31 @@ It combines clean UX, powerful categorization, visual analytics, and (future) sm
 - Node.js ≥ 18
 - pnpm / yarn / npm
 
-### Installation
+### Installation & Setup
 
+1. **Clone the repo & install dependencies**
 ```bash
 # Clone the repo
 git clone https://github.com/yourusername/smart-expenses-manager.git
 cd smart-expenses-manager
 
 # Install dependencies
-pnpm install
-# or
-yarn install
-# or
 npm install
+```
 
-# Start development server
-pnpm dev
-# or
-yarn dev
-# or
+2. **Set up Supabase (required for authentication & database)**
+- Create a project at https://supabase.com
+- Copy your project URL and anon key from Settings → API
+- Create a `.env.local` file in the root:
+```env
+VITE_SUPABASE_URL="https://your-project-ref.supabase.co"
+VITE_SUPABASE_ANON_KEY="your-anon-key-here"
+```
+- Run the SQL schema from `supabase-schema.sql` in your Supabase SQL Editor
+- Add `http://localhost:5173` to Supabase → Settings → API → Allowed origins (CORS)
+
+3. **Start development server**
+```bash
 npm run dev
 
 
@@ -125,10 +140,13 @@ Smart Expense Manager/
 ├─ postcss.config.js               # PostCSS configuration
 ├─ tailwind.config.js              # Tailwind CSS configuration
 ├─ tsconfig.app.json               # App TypeScript config
-├─ tsconfig.json                   # Root TypeScript config
+├─ tsconfig.json                   # Root TypeScript config (fixed deprecations)
 ├─ tsconfig.node.json              # Node TypeScript config
 ├─ vite.config.ts                  # Vite build configuration
 ├─ README.md                       # Project documentation
+├─ .env.local                      # Environment variables (Supabase credentials)
+├─ .gitignore
+├─ supabase-schema.sql             # Full PostgreSQL database schema
 ├─ public/
 │  └─ vite.svg
 └─ src/
@@ -139,11 +157,15 @@ Smart Expense Manager/
    ├─ components/
    │  └─ ShapeLandingHero.tsx      # Animated landing page hero
    ├─ lib/
-   │  └─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
+   │  ├─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
+   │  └─ supabase.ts               # Supabase client configuration
+   ├─ services/
+   │  ├─ auth.ts                   # Authentication service (login/logout)
+   │  └─ expenses.ts               # Expenses CRUD service
    └─ pages/
       ├─ LandingPage.tsx           # Main landing page
-      ├─ Login.tsx                 # Login page
-      └─ Signup.tsx                # Signup page
+      ├─ Login.tsx                 # Full functional login page
+      └─ Signup.tsx                # Full functional signup page
 ```
 
 ## 🎯 Next Steps for Development
