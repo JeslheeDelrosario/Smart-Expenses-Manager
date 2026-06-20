@@ -11,10 +11,14 @@ CREATE TABLE expenses (
   amount DECIMAL(10, 2) NOT NULL,
   description TEXT NOT NULL,
   category TEXT NOT NULL,
+  category_color TEXT NOT NULL DEFAULT '#818cf8',
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- If the table already exists, run this to add the missing column:
+-- ALTER TABLE expenses ADD COLUMN IF NOT EXISTS category_color TEXT NOT NULL DEFAULT '#818cf8';
 
 -- Create categories table (optional but useful for custom categories)
 CREATE TABLE categories (
@@ -22,6 +26,7 @@ CREATE TABLE categories (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   color TEXT NOT NULL DEFAULT '#818cf8',
+  budget DECIMAL(12, 2) DEFAULT 15000.00,
   icon TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -61,15 +66,15 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   -- Insert default categories for the new user
-  INSERT INTO categories (user_id, name, color)
+  INSERT INTO categories (user_id, name, color, budget)
   VALUES 
-    (NEW.id, 'Food & Dining', '#f59e0b'),
-    (NEW.id, 'Transportation', '#3b82f6'),
-    (NEW.id, 'Entertainment', '#8b5cf6'),
-    (NEW.id, 'Shopping', '#ec4899'),
-    (NEW.id, 'Bills & Utilities', '#10b981'),
-    (NEW.id, 'Healthcare', '#ef4444'),
-    (NEW.id, 'Other', '#6b7280');
+    (NEW.id, 'Food & Dining', '#f59e0b', 15000.00),
+    (NEW.id, 'Transportation', '#3b82f6', 8000.00),
+    (NEW.id, 'Entertainment', '#8b5cf6', 5000.00),
+    (NEW.id, 'Shopping', '#ec4899', 10000.00),
+    (NEW.id, 'Bills & Utilities', '#10b981', 12000.00),
+    (NEW.id, 'Healthcare', '#ef4444', 5000.00),
+    (NEW.id, 'Other', '#6b7280', 10000.00);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

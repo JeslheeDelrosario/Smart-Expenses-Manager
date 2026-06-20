@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -15,48 +15,94 @@ import {
   ArrowDownRight,
   CreditCard,
   Home,
-  User,
+  LogOut,
   Calendar,
   Bell,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
-// Mock data for dashboard
-const mockTransactions = [
-  { id: 1, name: "Puregold Grocery", category: "Food", amount: -2450.75, date: "2024-01-15" },
-  { id: 2, name: "Monthly Salary", category: "Income", amount: 45000.00, date: "2024-01-14" },
-  { id: 3, name: "Netflix Subscription", category: "Entertainment", amount: -299.00, date: "2024-01-13" },
-  { id: 4, name: "Petron Gas Station", category: "Transport", amount: -1200.00, date: "2024-01-12" },
-  { id: 5, name: "Meralco Bill", category: "Bills", amount: -3500.00, date: "2024-01-11" },
-];
+interface Transaction {
+  id: string;
+  description: string;
+  category: string;
+  category_color: string;
+  amount: number;
+  date: string;
+}
 
-const mockCategories = [
-  { name: "Food", spent: 12000, budget: 15000, color: "bg-[#f59e0b]" },
-  { name: "Transport", spent: 5000, budget: 8000, color: "bg-[#8b5cf6]" },
-  { name: "Entertainment", spent: 3500, budget: 5000, color: "bg-[#ec4899]" },
-  { name: "Bills", spent: 8500, budget: 10000, color: "bg-[#3b82f6]" },
-];
+interface CategoryStat {
+  name: string;
+  spent: number;
+  budget: number;
+  color: string;
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("dashboard");
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
+  const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(0);
 
-  // Calculate totals
-  const totalBalance = 157550.25;
-  const monthlyIncome = 45000.00;
-  const monthlyExpenses = 29000.00;
   const savings = monthlyIncome - monthlyExpenses;
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate("/login"); return; }
+
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+
+      const { data: allExpenses } = await supabase
+        .from("expenses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+
+      const expenses = allExpenses || [];
+      const balance = expenses.reduce((sum, e) => sum + e.amount, 0);
+      const thisMonthExpenses = expenses.filter(e => e.date >= startOfMonth);
+      const income = thisMonthExpenses.filter(e => e.amount > 0).reduce((sum, e) => sum + e.amount, 0);
+      const spent = thisMonthExpenses.filter(e => e.amount < 0).reduce((sum, e) => sum + Math.abs(e.amount), 0);
+
+      setTotalBalance(balance);
+      setMonthlyIncome(income);
+      setMonthlyExpenses(spent);
+      setRecentTransactions(expenses.slice(0, 5));
+
+      const { data: cats } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("user_id", user.id);
+
+      const stats = (cats || []).map(cat => {
+        const catExpenses = expenses.filter(e => e.category === cat.name && e.amount < 0);
+        const catSpent = catExpenses.reduce((sum, e) => sum + Math.abs(e.amount), 0);
+        return { name: cat.name, spent: catSpent, budget: cat.budget || 0, color: cat.color };
+      }).filter(c => c.budget > 0);
+
+      setCategoryStats(stats);
+    };
+
+    fetchData();
+  }, [navigate]);
+
   const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "transactions", label: "Transactions", icon: Receipt },
-    { id: "budgets", label: "Budgets", icon: PieChart },
-    { id: "accounts", label: "Accounts", icon: Wallet },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+    { id: "transactions", label: "Transactions", icon: Receipt, path: "/transactions" },
+    { id: "budgets", label: "Budgets", icon: PieChart, path: "/budgets" },
+    { id: "income", label: "Income", icon: ArrowUpRight, path: "/income" },
+    { id: "account", label: "Account", icon: Wallet, path: "/account" },
+    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     navigate("/login");
   };
 
@@ -94,62 +140,42 @@ export default function DashboardPage() {
         className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#1e293b] border-r border-[#4b5563] flex flex-col transform transition-transform duration-300 ease-in-out
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
-        {/* Sidebar Header */}
         <div className="p-6 border-b border-[#4b5563]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#818cf8] rounded-xl flex items-center justify-center shadow-lg shadow-[#818cf8]/25">
-              <Wallet className="w-5 h-5 text-[#0f172a]" />
+              <Wallet className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-[#e2e8f0]">ExpenseTrack</h1>
-              <p className="text-xs text-[#94a3b8]">Smart Expense Manager</p>
-            </div>
+            <span className="text-xl font-bold text-white">ExpenseTracker</span>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-2">
-          <p className="text-[#64748b] text-xs font-semibold uppercase tracking-wider px-4 mb-2">Main Menu</p>
-          <ul className="space-y-1.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.id}>
-                  <button
-                    onClick={() => setActiveNav(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                      ${activeNav === item.id
-                        ? "bg-[#818cf8] text-[#0f172a] shadow-lg shadow-[#818cf8]/25 scale-[1.02]"
-                        : "text-[#94a3b8] hover:bg-[#334155] hover:text-[#e2e8f0]"}`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <nav className="flex-1 p-4 space-y-2">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                setActiveNav(item.id);
+                navigate(item.path);
+              }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeNav === item.id
+                  ? "bg-[#818cf8] text-white shadow-lg shadow-[#818cf8]/25"
+                  : "text-gray-400 hover:bg-[#334155] hover:text-white"
+                }`}
+            >
+              <item.icon className="w-5 h-5" />
+              {item.label}
+            </button>
+          ))}
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-[#4b5563] mt-auto">
-          <div className="bg-[#0f172a]/50 rounded-xl p-3.5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#818cf8] rounded-full flex items-center justify-center shadow-lg shadow-[#818cf8]/20">
-                <User className="w-5 h-5 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-semibold text-[#f8fafc] text-sm truncate">John Doe</p>
-                <p className="text-xs text-[#94a3b8]">Premium User</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="mt-3.5 w-full py-2.5 bg-[#ef4444]/10 text-[#ef4444] rounded-lg font-semibold hover:bg-[#ef4444]/20 transition-all duration-200 text-sm active:scale-[0.98]"
-            >
-              Logout
-            </button>
-          </div>
+        <div className="p-4 border-t border-[#4b5563]">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all duration-200"
+          >
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -175,13 +201,15 @@ export default function DashboardPage() {
                 <p className="text-sm text-[#94a3b8] mt-1">Track your finances, expenses, and savings all in one place</p>
                 </div>
                 <div className="ml-auto flex items-center gap-4">
-                <button className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-[#818cf8] hover:bg-[#818cf8]/90 text-[#0f172a] rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-[#818cf8]/25 hover:scale-[1.02] active:scale-[0.98]">
+                <button
+                  onClick={() => navigate("/transactions")}
+                  className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-[#818cf8] hover:bg-[#818cf8]/90 text-[#0f172a] rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-[#818cf8]/25 hover:scale-[1.02] active:scale-[0.98]">
                     <Plus className="w-4 h-4" />
                     Add Transaction
                 </button>
                 <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-[#1e293b] rounded-xl border border-[#4b5563]">
                     <Calendar className="w-4 h-4 text-[#94a3b8]" />
-                    <span className="text-sm text-[#e2e8f0]">January 2024</span>
+                    <span className="text-sm text-[#e2e8f0]">{new Date().toLocaleDateString("en-PH", { month: "long", year: "numeric" })}</span>
                 </div>
                 <button className="relative p-2.5 bg-[#1e293b] rounded-xl border border-[#4b5563] hover:bg-[#334155] transition-colors">
                     <Bell className="w-5 h-5 text-[#e2e8f0]" />
@@ -290,12 +318,17 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center justify-between mb-5 md:mb-6">
                   <h3 className="text-base md:text-lg font-semibold text-[#f8fafc]">Recent Transactions</h3>
-                  <button className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10">
+                  <button onClick={() => navigate("/transactions")} className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10">
                     View All
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {mockTransactions.map((transaction) => (
+                  {recentTransactions.length === 0 ? (
+                    <div className="text-center py-8 text-[#94a3b8]">
+                      <Receipt className="w-10 h-10 mx-auto mb-3 opacity-40" />
+                      <p className="text-sm">No transactions yet. <button onClick={() => navigate("/transactions")} className="text-[#818cf8] hover:underline">Add one</button></p>
+                    </div>
+                  ) : recentTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
                       className="flex items-center justify-between p-3 md:p-4 bg-[#0f172a]/50 rounded-xl hover:bg-[#0f172a]/70 transition-all duration-200 border border-transparent hover:border-[#4b5563]/50"
@@ -306,7 +339,7 @@ export default function DashboardPage() {
                           <Receipt className={`w-4.5 h-4.5 ${transaction.amount > 0 ? "text-[#22c55e]" : "text-[#ef4444]"}`} />
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium text-[#f8fafc] truncate text-sm md:text-base">{transaction.name}</p>
+                          <p className="font-medium text-[#f8fafc] truncate text-sm md:text-base">{transaction.description}</p>
                           <p className="text-xs md:text-sm text-[#94a3b8] mt-0.5">{transaction.category} • {transaction.date}</p>
                         </div>
                       </div>
@@ -328,12 +361,14 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center justify-between mb-5 md:mb-6">
                   <h3 className="text-base md:text-lg font-semibold text-[#f8fafc]">Budget Progress</h3>
-                  <button className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10">
+                  <button onClick={() => navigate("/budgets")} className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10">
                     Edit
                   </button>
                 </div>
                 <div className="space-y-5 md:space-y-6">
-                  {mockCategories.map((category) => {
+                  {categoryStats.length === 0 ? (
+                    <p className="text-sm text-[#94a3b8] text-center py-4">No budget categories set. <button onClick={() => navigate("/budgets")} className="text-[#818cf8] hover:underline">Add budgets</button></p>
+                  ) : categoryStats.map((category) => {
                     const percentage = Math.min((category.spent / category.budget) * 100, 100);
                     const isOverBudget = percentage > 90;
                     return (
@@ -346,8 +381,8 @@ export default function DashboardPage() {
                         </div>
                         <div className="w-full h-2.5 bg-[#0f172a] rounded-full overflow-hidden">
                           <div
-                            className={`h-full ${isOverBudget ? "bg-[#ef4444]" : category.color} rounded-full transition-all duration-700 ease-out`}
-                            style={{ width: `${percentage}%` }}
+                            className="h-full rounded-full transition-all duration-700 ease-out"
+                            style={{ width: `${percentage}%`, backgroundColor: isOverBudget ? "#ef4444" : category.color }}
                           />
                         </div>
                         <p className="text-right text-xs mt-1 text-[#64748b]">{percentage.toFixed(0)}% used</p>
