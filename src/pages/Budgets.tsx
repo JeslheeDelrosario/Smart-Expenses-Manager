@@ -292,10 +292,11 @@ export default function BudgetsPage() {
                 setActiveNav(item.id);
                 navigate(item.path);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeNav === item.id
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                activeNav === item.id
                   ? "bg-[#818cf8] text-white shadow-lg shadow-[#818cf8]/25"
                   : "text-gray-400 hover:bg-[#334155] hover:text-white"
-                }`}
+              }`}
             >
               <item.icon className="w-5 h-5" />
               {item.label}
@@ -317,19 +318,26 @@ export default function BudgetsPage() {
       {/* Main Content */}
       <main className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-4">
+        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 text-gray-400 hover:text-white"
+                className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-2xl font-bold text-white">Budgets</h1>
+
+              <h1 className="text-3xl font-bold text-white leading-tight">
+                Budgets
+              </h1>
             </div>
+
             <button
-              onClick={() => { setShowAddModal(true); setEditingCategory(null); }}
+              onClick={() => {
+                setShowAddModal(true);
+                setEditingCategory(null);
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
             >
               <Plus className="w-5 h-5" />
@@ -337,7 +345,6 @@ export default function BudgetsPage() {
             </button>
           </div>
         </header>
-
         {/* Overview Cards */}
         <div className="px-6 py-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -349,7 +356,9 @@ export default function BudgetsPage() {
               className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
             >
               <p className="text-sm text-gray-400 mb-1">Total Budget</p>
-              <p className="text-3xl font-bold text-white">{formatCurrency(totalBudget)}</p>
+              <p className="text-3xl font-bold text-white">
+                {formatCurrency(totalBudget)}
+              </p>
             </motion.div>
             <motion.div
               custom={1}
@@ -359,7 +368,9 @@ export default function BudgetsPage() {
               className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
             >
               <p className="text-sm text-gray-400 mb-1">Total Spent</p>
-              <p className="text-3xl font-bold text-red-400">{formatCurrency(totalSpent)}</p>
+              <p className="text-3xl font-bold text-red-400">
+                {formatCurrency(totalSpent)}
+              </p>
             </motion.div>
             <motion.div
               custom={2}
@@ -369,7 +380,9 @@ export default function BudgetsPage() {
               className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
             >
               <p className="text-sm text-gray-400 mb-1">Remaining</p>
-              <p className="text-3xl font-bold text-green-400">{formatCurrency(totalBudget - totalSpent)}</p>
+              <p className="text-3xl font-bold text-green-400">
+                {formatCurrency(totalBudget - totalSpent)}
+              </p>
             </motion.div>
           </div>
 
@@ -382,30 +395,46 @@ export default function BudgetsPage() {
             className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6 mb-8"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-white">Overall Budget Usage</h3>
-              <span className="text-gray-400">{totalSpent > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0}% used</span>
+              <h3 className="text-lg font-semibold text-white">
+                Overall Budget Usage
+              </h3>
+              <span className="text-gray-400">
+                {totalSpent > 0
+                  ? Math.round((totalSpent / totalBudget) * 100)
+                  : 0}
+                % used
+              </span>
             </div>
             <div className="w-full h-4 bg-[#0f172a] rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-500 ${(totalSpent / totalBudget) > 0.8 ? "bg-red-500" : "bg-[#818cf8]"}`}
-                style={{ width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%` }}
+                className={`h-full transition-all duration-500 ${totalSpent / totalBudget > 0.8 ? "bg-red-500" : "bg-[#818cf8]"}`}
+                style={{
+                  width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%`,
+                }}
               />
             </div>
-            {(totalSpent / totalBudget) > 0.8 && (
+            {totalSpent / totalBudget > 0.8 && (
               <div className="flex items-center gap-2 mt-3 text-yellow-400">
                 <AlertTriangle className="w-4 h-4" />
-                <span className="text-sm">You're approaching your total budget limit!</span>
+                <span className="text-sm">
+                  You're approaching your total budget limit!
+                </span>
               </div>
             )}
           </motion.div>
 
           {/* Category Budget Cards */}
           {loading ? (
-            <div className="text-center py-12 text-gray-400">Loading budgets...</div>
+            <div className="text-center py-12 text-gray-400">
+              Loading budgets...
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category, index) => {
-                const percentage = getPercentage(category.spent, category.budget);
+                const percentage = getPercentage(
+                  category.spent,
+                  category.budget,
+                );
                 const isOverBudget = percentage >= 80;
                 return (
                   <motion.div
@@ -422,14 +451,20 @@ export default function BudgetsPage() {
                           className="w-4 h-4 rounded-full"
                           style={{ backgroundColor: category.color }}
                         />
-                        <h3 className="text-lg font-semibold text-white">{category.name}</h3>
+                        <h3 className="text-lg font-semibold text-white">
+                          {category.name}
+                        </h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
                             setEditingCategory(category);
                             // Format budget with commas when editing
-                            const formattedBudget = category.budget?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "";
+                            const formattedBudget =
+                              category.budget?.toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }) || "";
                             setFormData({
                               name: category.name,
                               color: category.color,
@@ -454,7 +489,8 @@ export default function BudgetsPage() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-400">Spent</span>
                         <span className="text-sm font-medium text-white">
-                          {formatCurrency(category.spent)} / {formatCurrency(category.budget || 0)}
+                          {formatCurrency(category.spent)} /{" "}
+                          {formatCurrency(category.budget || 0)}
                         </span>
                       </div>
                       <div className="w-full h-3 bg-[#0f172a] rounded-full overflow-hidden">
@@ -462,7 +498,9 @@ export default function BudgetsPage() {
                           className={`h-full transition-all duration-500 ${isOverBudget ? "bg-red-500" : ""}`}
                           style={{
                             width: `${percentage}%`,
-                            backgroundColor: isOverBudget ? undefined : category.color,
+                            backgroundColor: isOverBudget
+                              ? undefined
+                              : category.color,
                           }}
                         />
                       </div>
@@ -470,9 +508,13 @@ export default function BudgetsPage() {
 
                     <div className="flex items-center justify-between pt-4 border-t border-[#4b5563]">
                       <span className="text-sm text-gray-400">Remaining</span>
-                      <span className={`text-sm font-semibold ${(category.budget || 0) - category.spent > 0 ? "text-green-400" : "text-red-400"}`}>
+                      <span
+                        className={`text-sm font-semibold ${(category.budget || 0) - category.spent > 0 ? "text-green-400" : "text-red-400"}`}
+                      >
                         <ArrowUpRight className="w-4 h-4 inline mr-1" />
-                        {formatCurrency((category.budget || 0) - category.spent)}
+                        {formatCurrency(
+                          (category.budget || 0) - category.spent,
+                        )}
                       </span>
                     </div>
 
@@ -480,7 +522,9 @@ export default function BudgetsPage() {
                       <div className="flex items-center gap-2 mt-4 p-2 bg-yellow-400/10 rounded-lg">
                         <AlertTriangle className="w-4 h-4 text-yellow-400" />
                         <span className="text-xs text-yellow-400">
-                          {percentage >= 100 ? "Over budget!" : "Approaching limit"}
+                          {percentage >= 100
+                            ? "Over budget!"
+                            : "Approaching limit"}
                         </span>
                       </div>
                     )}
@@ -505,7 +549,10 @@ export default function BudgetsPage() {
                 {editingCategory ? "Edit Category" : "Add New Category"}
               </h2>
               <button
-                onClick={() => { setShowAddModal(false); setEditingCategory(null); }}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setEditingCategory(null);
+                }}
                 className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]"
               >
                 <X className="w-5 h-5" />
@@ -514,19 +561,25 @@ export default function BudgetsPage() {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Category Name</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Category Name
+                </label>
                 <input
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
                   placeholder="e.g., Subscriptions"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Monthly Budget (PHP)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Monthly Budget (PHP)
+                </label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -539,7 +592,9 @@ export default function BudgetsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Color</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Color
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((color) => (
                     <button
@@ -556,7 +611,10 @@ export default function BudgetsPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => { setShowAddModal(false); setEditingCategory(null); }}
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingCategory(null);
+                  }}
                   className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
                 >
                   Cancel

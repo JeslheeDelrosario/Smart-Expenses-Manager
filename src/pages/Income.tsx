@@ -331,7 +331,7 @@ export default function IncomePage() {
           </div>
 
           {/* Desktop Header */}
-          <div className="hidden lg:flex sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-sm px-8 py-4 border-b border-[#4b5563]/50 -mx-4 mt-0 mb-6 pb-5">
+          <div className="hidden lg:flex sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-sm px-8 py-4 border-b border-[#4b5563]/50 -mx-4 mt-0 mb-6 pb-3">
             <div>
               <h1 className="text-2xl font-bold text-white">Income Tracker</h1>
               <p className="text-gray-400 mt-1">

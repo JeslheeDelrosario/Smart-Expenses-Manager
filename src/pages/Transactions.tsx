@@ -330,7 +330,7 @@ export default function TransactionsPage() {
       {/* Main Content */}
       <main className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-4">
+        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <button
