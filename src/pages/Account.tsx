@@ -20,6 +20,7 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
 
 // Types
@@ -33,10 +34,20 @@ interface UserProfile {
 
 export default function AccountPage() {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("account");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   const [stats, setStats] = useState({
     totalTransactions: 0,
     totalSpent: 0,
@@ -125,11 +136,6 @@ export default function AccountPage() {
 
     fetchProfile();
   }, [navigate]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
 
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -228,7 +234,7 @@ export default function AccountPage() {
                 className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
               >
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  <div className="w-24 h-24 bg-gradient-to-br from-[#818cf8] to-[#6366f1] rounded-2xl flex items-center justify-center shadow-lg shadow-[#818cf8]/25">
+                  <div className="w-24 h-24 bg-linear-to-br from-[#818cf8] to-[#6366f1] rounded-2xl flex items-center justify-center shadow-lg shadow-[#818cf8]/25">
                     <span className="text-3xl font-bold text-white">
                       {profile.full_name.split(" ").map(n => n[0]).join("").toUpperCase()}
                     </span>
@@ -380,7 +386,7 @@ export default function AccountPage() {
                   </div>
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 p-4 bg-[#0f172a] rounded-xl border border-[#4b5563]">
-                      <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-8 bg-linear-to-r from-blue-600 to-blue-800 rounded-lg flex items-center justify-center">
                         <CreditCard className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">

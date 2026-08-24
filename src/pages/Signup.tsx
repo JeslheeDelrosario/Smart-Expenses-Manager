@@ -1,13 +1,14 @@
 // src/pages/Signup.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { Mail, Lock, User, UserPlus, Eye, EyeOff } from "lucide-react";
-import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function SignupPage() {
   const navigate = useNavigate();
+  const { user, signUp } = useAuth();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -20,6 +21,13 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -30,9 +38,6 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    console.log("Supabase URL:", import.meta.env.VITE_SUPABASE_URL);
-  console.log("Anon key exists:", !!import.meta.env.VITE_SUPABASE_ANON_KEY);
 
     setError("");
     setSuccess("");
@@ -67,42 +72,26 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      const { data, error: supabaseError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-          },
-        },
+      await signUp(formData.email, formData.password, formData.fullName);
+      
+      setSuccess("Account created successfully! Check your email for verification. Redirecting to login...");
+      
+      // Clear form
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
       });
 
-      if (supabaseError) {
-         console.error("Supabase signup error:", supabaseError);
-         setError(supabaseError.message);
-         return;
-       }
-
-      if (data.user) {
-        setSuccess("Account created successfully! Check your email for verification. Redirecting to login...");
-        
-        // Clear form
-        setFormData({
-          fullName: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        });
-
-        // Redirect to login after 3 seconds
-        setTimeout(() => navigate('/login'), 3000);
-      }
-    } catch (err) {
-       console.error("Unexpected signup error:", err);
-       setError("Signup failed. Please try again.");
-     } finally {
-       setIsLoading(false);
-     }
+      // Redirect to login after 3 seconds
+      setTimeout(() => navigate('/login'), 3000);
+    } catch (err: unknown) {
+      console.error("Signup error:", err);
+      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fadeInVariants: Variants = {

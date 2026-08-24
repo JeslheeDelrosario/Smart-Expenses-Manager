@@ -37,6 +37,9 @@ It combines clean UX, powerful categorization, visual analytics, and (future) sm
 - PostgreSQL database schema with RLS policies
 - User-specific data isolation
 - Automatic default category creation for new users
+- **JWT-based authentication system** with AuthContext and protected routes
+- Custom ocean-inspired theme implementation
+- Full responsive dashboard layout with all core pages
 
 ### Phase 2: Core Expense Tracking (Current - In Progress)
 🔄 **In Development:**
@@ -94,6 +97,75 @@ It combines clean UX, powerful categorization, visual analytics, and (future) sm
 | Charts          | Recharts                            | 📋 Planned                            | Data visualization & analytics      |
 | Forms           | React Hook Form + Zod               | 📋 Planned                            | Type-safe form validation            |
 
+## 🔐 Authentication System (JWT-based)
+
+The application implements **JWT-based authentication** using Supabase's authentication system, which automatically handles token generation, storage, and refresh.
+
+### Key Authentication Features:
+- **Global Auth State Management**: `AuthContext` provides authentication state throughout the app
+- **Protected Routes**: Only authenticated users can access dashboard pages
+- **Automatic Session Management**: Supabase handles JWT token refresh automatically
+- **Secure Storage**: Tokens are stored securely in browser localStorage
+- **Redirect Logic**: Unauthenticated users are redirected to login page
+
+### AuthContext Implementation
+Located at `src/contexts/AuthContext.tsx`, the context provides:
+```typescript
+interface AuthContextType {
+  user: User | null;           // Current user object
+  session: Session | null;     // Current Supabase session
+  isLoading: boolean;          // Auth state loading flag
+  signIn: (email, password) => Promise<void>;
+  signUp: (email, password, fullName) => Promise<void>;
+  signOut: () => Promise<void>;
+}
+```
+
+### Protected Route Component
+Located at `src/components/ProtectedRoute.tsx`, this component wraps all authenticated routes to ensure only logged-in users can access them.
+
+### How JWT Works:
+1. User logs in → Supabase issues a JWT token
+2. Token is stored in localStorage and sent with every API request
+3. Tokens are automatically refreshed before expiration
+4. On logout, tokens are cleared from storage
+
+## 🎨 Theme Customization
+
+The application features a custom **ocean-inspired dark theme** with blue-centric colors, defined in `src/index.css` using Tailwind CSS's CSS variable system.
+
+### Current Theme Colors
+| Purpose    | Hex       | RGB              | HSL               | Description                              |
+|------------|-----------|------------------|-------------------|------------------------------------------|
+| Text       | `#ecf1f3` | rgb(236, 241, 243)| hsl(197, 23%, 94%)| Primary text color for readability        |
+| Background | `#091114` | rgb(9, 17, 20)   | hsl(196, 38%, 6%) | Main page background (deep dark blue)    |
+| Primary    | `#98c9de` | rgb(152, 201, 222)| hsl(198, 51%, 73%)| Primary brand color for buttons/actions  |
+| Secondary  | `#1a6382` | rgb(26, 99, 130) | hsl(198, 67%, 31%)| Secondary color for cards and borders    |
+| Accent     | `#22ade7` | rgb(34, 173, 231)| hsl(198, 80%, 52%)| Bright accent color for interactive elements |
+
+### Modifying the Theme
+To change the theme colors, edit the CSS variables in the `.dark` selector in `src/index.css`:
+
+```css
+.dark {
+  --background: oklch(0.086 0.020 196); /* Your background hex converted to oklch */
+  --foreground: oklch(0.943 0.013 197); /* Text color */
+  --primary: oklch(0.801 0.052 198);    /* Primary color */
+  --secondary: oklch(0.425 0.080 198);  /* Secondary color */
+  --accent: oklch(0.730 0.140 198);     /* Accent color */
+}
+```
+
+### Theme Structure
+All components use Tailwind's semantic color classes:
+- `bg-background` → Page background
+- `text-foreground` → Main text color
+- `bg-primary` → Primary button backgrounds
+- `bg-accent` → Accent elements and highlights
+- `border-border` → Border colors
+
+This structure makes it easy to update the entire app's theme by changing only the CSS variables.
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -150,12 +222,15 @@ Smart Expense Manager/
 ├─ public/
 │  └─ vite.svg
 └─ src/
-   ├─ App.tsx                      # Main app component with routing
-   ├─ index.css                    # Global styles
+   ├─ App.tsx                      # Main app component with routing & AuthProvider
+   ├─ index.css                    # Global styles & theme configuration
    ├─ main.tsx                     # React DOM entry point
+   ├─ contexts/
+   │  └─ AuthContext.tsx           # Global auth state management (JWT)
    ├─ assets/                      # Static assets (images, fonts)
    ├─ components/
-   │  └─ ShapeLandingHero.tsx      # Animated landing page hero
+   │  ├─ ShapeLandingHero.tsx      # Animated landing page hero
+   │  └─ ProtectedRoute.tsx        # Route protection for authenticated pages
    ├─ lib/
    │  ├─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
    │  └─ supabase.ts               # Supabase client configuration
@@ -165,13 +240,25 @@ Smart Expense Manager/
    └─ pages/
       ├─ LandingPage.tsx           # Main landing page
       ├─ Login.tsx                 # Full functional login page
-      └─ Signup.tsx                # Full functional signup page
+      ├─ Signup.tsx                # Full functional signup page
+      ├─ Dashboard.tsx             # Main dashboard page
+      ├─ Transactions.tsx          # Transactions management page
+      ├─ Income.tsx                # Income tracking page
+      ├─ Budgets.tsx               # Budget management page
+      ├─ Account.tsx               # User account & profile page
+      └─ Settings.tsx              # Application settings page
 ```
 
 ## 🎯 Next Steps for Development
-1. **Build out authentication components** - Complete login and signup forms with validation
-2. **Create main dashboard layout** - Set up the core application shell for logged-in users
-3. **Implement expense data models** - Define TypeScript interfaces for expenses, categories, and users
-4. **Add state management** - Integrate Zustand for global state management
-5. **Build CRUD operations** - Create the ability to add, edit, and delete expenses
-6. **Implement basic charts** - Add Recharts to visualize spending patterns
+✅ **Completed:**
+1. **JWT Authentication System** - AuthContext, protected routes, full login/signup flow
+2. **Main dashboard layout** - Core application shell with all page routes
+3. **Custom theme implementation** - Ocean-inspired dark theme with Tailwind CSS
+
+📋 **Remaining Development Tasks:**
+1. **Implement expense data models** - Define TypeScript interfaces for expenses, categories, and users
+2. **Add advanced state management** - Integrate Zustand for global state management
+3. **Build CRUD operations** - Create the ability to add, edit, and delete expenses
+4. **Implement basic charts** - Add Recharts to visualize spending patterns
+5. **Add budget tracking features** - Create budget creation and monitoring system
+6. **Mobile responsiveness polish** - Ensure all features work well on mobile devices
