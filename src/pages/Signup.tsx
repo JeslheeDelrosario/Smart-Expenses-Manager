@@ -2,26 +2,27 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
-import { Mail, Lock, User, UserPlus, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { colors as c } from "../lib/theme";
 
 export default function SignupPage() {
   const navigate = useNavigate();
   const { user, signUp } = useAuth();
+
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
@@ -30,6 +31,7 @@ export default function SignupPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -42,30 +44,30 @@ export default function SignupPage() {
     setError("");
     setSuccess("");
 
-    // Validation
     if (
       !formData.fullName ||
       !formData.email ||
       !formData.password ||
       !formData.confirmPassword
     ) {
-      setError("Please fill in all fields");
+      setError("Please complete all fields.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(formData.email)) {
-      setError("Please enter a valid email address");
+      setError("Please enter a valid email address.");
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
+      setError("Your password must be at least 8 characters.");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Passwords don't match.");
       return;
     }
 
@@ -73,10 +75,9 @@ export default function SignupPage() {
 
     try {
       await signUp(formData.email, formData.password, formData.fullName);
-      
-      setSuccess("Account created successfully! Check your email for verification. Redirecting to login...");
-      
-      // Clear form
+
+      setSuccess("Account created. Check your email to verify your account.");
+
       setFormData({
         fullName: "",
         email: "",
@@ -84,294 +85,371 @@ export default function SignupPage() {
         confirmPassword: "",
       });
 
-      // Redirect to login after 3 seconds
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => {
+        navigate("/login");
+      }, 2500);
     } catch (err: unknown) {
       console.error("Signup error:", err);
-      setError(err instanceof Error ? err.message : "Signup failed. Please try again.");
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to create your account. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fadeInVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        delay: i * 0.1,
-      },
-    }),
+  const inputStyle = {
+    background: `${c.bg}90`,
+    borderColor: c.border,
+    color: c.text,
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4 py-8">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#818cf8]/[0.05] via-transparent to-[#2d3748]/[0.05] blur-3xl" />
+    <main
+      className="relative min-h-screen overflow-hidden flex items-center justify-center px-5 py-10"
+      style={{ background: c.bg }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none absolute -top-40 left-1/2 h-137.5 w-187.5 -translate-x-1/2 rounded-full blur-[140px] opacity-[0.08]"
+        style={{ background: c.primary }}
+      />
 
-      {/* Main signup container */}
+      {/* Grid */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(${c.text} 1px, transparent 1px),
+            linear-gradient(90deg, ${c.text} 1px, transparent 1px)
+          `,
+          backgroundSize: "48px 48px",
+        }}
+      />
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 0.5,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="relative z-10 w-full max-w-110"
       >
-        {/* Signup card */}
-        <div className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-8 shadow-2xl">
-          {/* Header section */}
-          <motion.div
-            custom={0}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-center mb-8"
+        {/* Brand */}
+        {/* <div className="mb-7 text-center">
+          <button
+            onClick={() => navigate("/")}
+            className="inline-flex items-center gap-2.5"
           >
-            {/* Logo/Icon */}
-            <div className="w-16 h-16 bg-[#818cf8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#818cf8]/25">
-              <UserPlus className="w-8 h-8 text-[#0f172a]" />
-            </div>
-
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-[#e2e8f0] mb-2">
-              Create Account
-            </h1>
-            <p className="text-[#9ca3af] text-sm">
-              Start managing your expenses today
-            </p>
-          </motion.div>
-
-          {/* Signup form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name input field */}
-            <motion.div
-              custom={1}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-xl border"
+              style={{
+                background: `${c.primary}10`,
+                borderColor: `${c.primary}25`,
+                color: c.primary,
+              }}
             >
+              <span className="text-sm font-bold">◈</span>
+            </span>
+
+            <span
+              className="text-base font-semibold tracking-tight"
+              style={{ color: c.text }}
+            >
+              Smart Expenses
+            </span>
+          </button>
+        </div> */}
+
+        {/* Card */}
+        <div
+          className="rounded-3xl border p-7 sm:p-8 backdrop-blur-2xl"
+          style={{
+            background: `${c.card}cc`,
+            borderColor: c.border,
+            boxShadow: `0 30px 80px ${c.bg}80`,
+          }}
+        >
+          <div className="mb-7">
+            <h1
+              className="text-2xl font-semibold tracking-tight"
+              style={{ color: c.text }}
+            >
+              Create your account
+            </h1>
+
+            <p
+              className="mt-2 text-sm leading-relaxed"
+              style={{ color: c.textMuted }}
+            >
+              Start building a clearer picture of your finances.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4.5">
+            {/* Full Name */}
+            <div>
               <label
                 htmlFor="fullName"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
+                className="mb-2 block text-sm font-medium"
+                style={{ color: c.text }}
               >
-                Full Name
+                Full name
               </label>
+
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+                <User
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: c.textFaint }}
+                />
+
                 <input
                   id="fullName"
                   name="fullName"
                   type="text"
                   value={formData.fullName}
                   onChange={handleChange}
-                  placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
+                  placeholder="Enter your full name"
+                  autoComplete="name"
                   disabled={isLoading}
+                  className="w-full rounded-xl border py-3 pl-10 pr-4 text-sm outline-none transition-all"
+                  style={inputStyle}
                 />
               </div>
-            </motion.div>
+            </div>
 
-            {/* Email input field */}
-            <motion.div
-              custom={2}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-            >
+            {/* Email */}
+            <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
+                className="mb-2 block text-sm font-medium"
+                style={{ color: c.text }}
               >
-                Email Address
+                Email
               </label>
+
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+                <Mail
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: c.textFaint }}
+                />
+
                 <input
                   id="email"
                   name="email"
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
+                  placeholder="Enter your email"
+                  autoComplete="email"
                   disabled={isLoading}
+                  className="w-full rounded-xl border py-3 pl-10 pr-4 text-sm outline-none transition-all"
+                  style={inputStyle}
                 />
               </div>
-            </motion.div>
+            </div>
 
-            {/* Password input field */}
-            <motion.div
-              custom={3}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-            >
+            {/* Password */}
+            <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
+                className="mb-2 block text-sm font-medium"
+                style={{ color: c.text }}
               >
                 Password
               </label>
+
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: c.textFaint }}
+                />
+
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
+                  placeholder="Create a password"
+                  autoComplete="new-password"
                   disabled={isLoading}
+                  className="w-full rounded-xl border py-3 pl-10 pr-11 text-sm outline-none transition-all"
+                  style={inputStyle}
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#d1d5db] transition-colors"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: c.textFaint }}
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="w-5 h-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[#9ca3af]">
-                Must be at least 8 characters
-              </p>
-            </motion.div>
 
-            {/* Confirm Password input field */}
-            <motion.div
-              custom={4}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-            >
+              <p className="mt-1.5 text-xs" style={{ color: c.textFaint }}>
+                Use at least 8 characters.
+              </p>
+            </div>
+
+            {/* Confirm Password */}
+            <div>
               <label
                 htmlFor="confirmPassword"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
+                className="mb-2 block text-sm font-medium"
+                style={{ color: c.text }}
               >
-                Confirm Password
+                Confirm password
               </label>
+
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: c.textFaint }}
+                />
+
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-12 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
                   disabled={isLoading}
+                  className="w-full rounded-xl border py-3 pl-10 pr-11 text-sm outline-none transition-all"
+                  style={inputStyle}
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#9ca3af] hover:text-[#d1d5db] transition-colors"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2"
+                  style={{ color: c.textFaint }}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="w-5 h-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Error message display */}
+            {/* Error */}
             {error && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm"
+                className="rounded-xl border px-4 py-3 text-sm"
+                style={{
+                  background: `${c.danger}0d`,
+                  borderColor: `${c.danger}25`,
+                  color: c.danger,
+                }}
               >
                 {error}
               </motion.div>
             )}
 
-            {/* Success message display */}
+            {/* Success */}
             {success && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-green-500/10 border border-green-500/20 rounded-lg p-3 text-green-400 text-sm"
+                className="rounded-xl border px-4 py-3 text-sm"
+                style={{
+                  background: `${c.success}0d`,
+                  borderColor: `${c.success}25`,
+                  color: c.success,
+                }}
               >
                 {success}
               </motion.div>
             )}
 
-            {/* Submit button */}
+            {/* Submit */}
             <motion.button
-              custom={5}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-[#818cf8] text-[#0f172a] font-semibold rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#818cf8]/25"
+              whileHover={!isLoading ? { y: -1 } : undefined}
+              whileTap={!isLoading ? { scale: 0.99 } : undefined}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60"
+              style={{
+                background: c.primary,
+                color: c.bg,
+                boxShadow: `0 10px 30px ${c.primary}25`,
+              }}
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-[#0f172a]/30 border-t-[#0f172a] rounded-full animate-spin" />
+                  <span
+                    className="h-4 w-4 animate-spin rounded-full border-2"
+                    style={{
+                      borderColor: `${c.bg}40`,
+                      borderTopColor: c.bg,
+                    }}
+                  />
                   Creating account...
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-5 h-5" />
-                  Create Account
+                  Create account
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </motion.button>
           </form>
 
-          {/* Footer links */}
-          <motion.div
-            custom={6}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
-            className="mt-6 text-center"
-          >
-            <p className="text-sm text-[#9ca3af]">
+          {/* Login */}
+          <div className="mt-7 text-center">
+            <p className="text-sm" style={{ color: c.textMuted }}>
               Already have an account?{" "}
               <button
                 type="button"
-                className="text-[#818cf8] hover:text-[#818cf8]/80 transition-colors duration-200"
                 onClick={() => navigate("/login")}
+                className="font-medium transition-colors"
+                style={{ color: c.primary }}
               >
                 Sign in
               </button>
             </p>
-          </motion.div>
-
-          {/* Terms agreement note */}
-          <motion.p
-            custom={7}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
-            className="mt-4 text-xs text-center text-[#9ca3af]"
-          >
-            By creating an account, you agree to our{" "}
-            <button
-              type="button"
-              className="text-[#818cf8] hover:text-[#818cf8]/80 underline"
-            >
-              Terms of Service
-            </button>{" "}
-            and{" "}
-            <button
-              type="button"
-              className="text-[#818cf8] hover:text-[#818cf8]/80 underline"
-            >
-              Privacy Policy
-            </button>
-          </motion.p>
+          </div>
         </div>
+
+        {/* Terms */}
+        <p
+          className="mx-auto mt-5 max-w-sm text-center text-xs leading-relaxed"
+          style={{ color: c.textFaint }}
+        >
+          By creating an account, you agree to our{" "}
+          <button
+            type="button"
+            className="underline underline-offset-2"
+            style={{ color: c.textMuted }}
+          >
+            Terms of Service
+          </button>{" "}
+          and{" "}
+          <button
+            type="button"
+            className="underline underline-offset-2"
+            style={{ color: c.textMuted }}
+          >
+            Privacy Policy
+          </button>
+          .
+        </p>
       </motion.div>
-    </div>
+    </main>
   );
 }

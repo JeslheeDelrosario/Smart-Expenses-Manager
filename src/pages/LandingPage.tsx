@@ -1,10 +1,27 @@
 // src\pages\LandingPage.tsx
-import { HeroGeometric } from "@/components/ShapeLandingHero"; 
 
-export default function Landing() {
+import { Navbar } from "../components/Navbar";
+import { Hero } from "../components/Hero";
+import { FeaturesSection } from "../components/FeaturesSection";
+// import { BentoFeatures } from "../components/BentoFeatures";
+import { SmartInsights } from "../components/SmartInsights";
+import { HowItWorks } from "../components/HowItWorks";
+import { FinalCTA } from "../components/FinalCTA";
+import { Footer } from "../components/Footer";
+
+function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <HeroGeometric/>
+    <div>
+      <Navbar />
+      <Hero />
+      <FeaturesSection/>
+      {/* <BentoFeatures /> */}
+      <SmartInsights />
+      <HowItWorks />
+      <FinalCTA />
+      <Footer />
     </div>
   );
 }
+
+export { LandingPage };

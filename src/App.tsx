@@ -1,8 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import LandingPage from "@/pages/LandingPage";
-import LoginPage from "@/pages/Login";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { LandingPage } from "./pages/LandingPage";
+import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import DashboardPage from "./pages/Dashboard";
 import TransactionsPage from "./pages/Transactions";
@@ -15,6 +16,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />

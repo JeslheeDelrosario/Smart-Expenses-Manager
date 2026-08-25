@@ -301,7 +301,7 @@ export default function DashboardPage() {
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-[#818cf8] to-[#6366f1] backdrop-blur-lg rounded-2xl border border-[#818cf8]/30 p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="sm:col-span-2 lg:col-span-1 bg-linear-to-br from-[#818cf8] to-[#6366f1] backdrop-blur-lg rounded-2xl border border-[#818cf8]/30 p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
@@ -508,7 +508,7 @@ export default function DashboardPage() {
                       >
                         <div className="flex items-center gap-3 md:gap-4 min-w-0">
                           <div
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0
                           ${transaction.amount > 0 ? "bg-[#22c55e]/20" : "bg-[#ef4444]/20"}`}
                           >
                             <Receipt

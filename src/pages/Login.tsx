@@ -1,20 +1,30 @@
 // src/pages/Login.tsx
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import type { Variants } from "framer-motion";
-import { Mail, Lock, LogIn, User } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  LogIn,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  ShieldCheck,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { colors as c } from "../lib/theme";
 
-export default function LoginPage() {
+function LoginPage() {
   const navigate = useNavigate();
   const { user, signIn } = useAuth();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
@@ -27,13 +37,14 @@ export default function LoginPage() {
     setError("");
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      setError("Enter your email and password to continue.");
       return;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -41,188 +52,666 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password);
+
       setEmail("");
       setPassword("");
+
       navigate("/dashboard");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to sign in. Please check your credentials and try again.",
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fadeInVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        delay: i * 0.1,
-      },
-    }),
-  };
-
   return (
-    <div className="min-h-screen bg-[#0f172a] flex items-center justify-center px-4">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#818cf8]/[0.05] via-transparent to-[#2d3748]/[0.05] blur-3xl" />
+    <main
+      className="relative min-h-screen overflow-hidden flex items-center justify-center px-5 py-10"
+      style={{
+        background: c.bg,
+      }}
+    >
+      {/* ================================================== */}
+      {/* BACKGROUND */}
+      {/* ================================================== */}
 
-      {/* Main login container */}
+      <div
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-1/2
+          h-150
+          w-200
+          -translate-x-1/2
+          -translate-y-1/2
+          rounded-full
+          blur-[140px]
+        "
+        style={{
+          background: c.primary,
+          opacity: 0.06,
+        }}
+      />
+
+      {/* Grid */}
+
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.025]"
+        style={{
+          backgroundImage: `
+            linear-gradient(${c.text} 1px, transparent 1px),
+            linear-gradient(90deg, ${c.text} 1px, transparent 1px)
+          `,
+          backgroundSize: "56px 56px",
+        }}
+      />
+
+      {/* Decorative shape */}
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* Login card */}
-        <div className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-8 shadow-2xl">
-          {/* Header section */}
-          <motion.div
-            custom={0}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
-            className="text-center mb-8"
-          >
-            {/* Logo/Icon */}
-            <div className="w-16 h-16 bg-[#818cf8] rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#818cf8]/25">
-              <User className="w-8 h-8 text-[#0f172a]" />
+        initial={{
+          opacity: 0,
+          rotate: -12,
+          x: -80,
+        }}
+        animate={{
+          opacity: 1,
+          rotate: -8,
+          x: 0,
+        }}
+        transition={{
+          duration: 1.2,
+          ease: [0.23, 0.86, 0.39, 0.96],
+        }}
+        className="
+          pointer-events-none
+          absolute
+          -left-40
+          top-[18%]
+          hidden
+          h-32
+          w-125
+          rounded-full
+          border
+          lg:block
+        "
+        style={{
+          background: `linear-gradient(
+            90deg,
+            ${c.primary}12,
+            transparent
+          )`,
+          borderColor: `${c.text}10`,
+          boxShadow: `0 8px 40px ${c.primary}08`,
+        }}
+      />
+
+      <motion.div
+        initial={{
+          opacity: 0,
+          rotate: 12,
+          x: 80,
+        }}
+        animate={{
+          opacity: 1,
+          rotate: 8,
+          x: 0,
+        }}
+        transition={{
+          duration: 1.2,
+          delay: 0.15,
+          ease: [0.23, 0.86, 0.39, 0.96],
+        }}
+        className="
+          pointer-events-none
+          absolute
+          -right-40
+          bottom-[18%]
+          hidden
+          h-28
+          w-112.5
+          rounded-full
+          border
+          lg:block
+        "
+        style={{
+          background: `linear-gradient(
+            90deg,
+            transparent,
+            ${c.primary}10
+          )`,
+          borderColor: `${c.text}10`,
+        }}
+      />
+
+      {/* ================================================== */}
+      {/* CONTENT */}
+      {/* ================================================== */}
+
+      <div className="relative z-10 w-full max-w-md">
+        {/* Back to landing page */}
+
+        <motion.button
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          onClick={() => navigate("/")}
+          className="
+            mb-7
+            flex
+            items-center
+            gap-2
+            text-sm
+            transition-colors
+          "
+          style={{
+            color: c.textMuted,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = c.text;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = c.textMuted;
+          }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Smart Expenses
+        </motion.button>
+
+        {/* ================================================== */}
+        {/* LOGIN CARD */}
+        {/* ================================================== */}
+
+        <motion.div
+          initial={{
+            opacity: 0,
+            y: 20,
+            scale: 0.98,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
+          }}
+          transition={{
+            duration: 0.7,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          className="
+            relative
+            overflow-hidden
+            rounded-3xl
+            border
+            p-7
+            sm:p-9
+            backdrop-blur-2xl
+          "
+          style={{
+            background: `${c.card}cc`,
+            borderColor: c.border,
+            boxShadow: `
+              0 30px 80px ${c.bg}80,
+              0 0 60px ${c.primary}06
+            `,
+          }}
+        >
+          {/* Card glow */}
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              left-1/2
+              top-0
+              h-40
+              w-72
+              -translate-x-1/2
+              -translate-y-1/2
+              rounded-full
+              blur-[80px]
+            "
+            style={{
+              background: c.primary,
+              opacity: 0.08,
+            }}
+          />
+
+          <div className="relative">
+            {/* ================================================== */}
+            {/* BRAND */}
+            {/* ================================================== */}
+
+            <div className="mb-8 flex items-center gap-3">
+              <div
+                className="
+                  flex
+                  h-10
+                  w-10
+                  items-center
+                  justify-center
+                  rounded-xl
+                  border
+                "
+                style={{
+                  background: `${c.primary}10`,
+                  borderColor: `${c.primary}25`,
+                  color: c.primary,
+                  boxShadow: `0 0 20px ${c.primary}10`,
+                }}
+              >
+                <span className="text-lg font-semibold">◈</span>
+              </div>
+
+              <div>
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color: c.text,
+                  }}
+                >
+                  Smart Expenses
+                </p>
+
+                <p
+                  className="text-[11px]"
+                  style={{
+                    color: c.textFaint,
+                  }}
+                >
+                  Personal finance, simplified.
+                </p>
+              </div>
             </div>
 
-            {/* Title */}
-            <h1 className="text-3xl font-bold text-[#e2e8f0] mb-2">
-              Welcome Back
-            </h1>
-            <p className="text-[#9ca3af] text-sm">
-              Sign in to access your expense manager
-            </p>
-          </motion.div>
+            {/* ================================================== */}
+            {/* HEADER */}
+            {/* ================================================== */}
 
-          {/* Login form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email input field */}
-            <motion.div
-              custom={1}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
+            <div className="mb-7">
+              <h1
+                className="
+                  text-3xl
+                  font-semibold
+                  tracking-[-0.035em]
+                  sm:text-4xl
+                "
+                style={{
+                  color: c.text,
+                }}
               >
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
-                  disabled={isLoading}
-                />
+                Welcome back.
+              </h1>
+
+              <p
+                className="mt-2 text-sm leading-relaxed"
+                style={{
+                  color: c.textMuted,
+                }}
+              >
+                Sign in to pick up where you left off.
+              </p>
+            </div>
+
+            {/* ================================================== */}
+            {/* FORM */}
+            {/* ================================================== */}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email */}
+
+              <div>
+                <label
+                  htmlFor="email"
+                  className="mb-2 block text-xs font-medium"
+                  style={{
+                    color: c.text,
+                  }}
+                >
+                  Email
+                </label>
+
+                <div className="relative">
+                  <Mail
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-3.5
+                      top-1/2
+                      h-4
+                      w-4
+                      -translate-y-1/2
+                    "
+                    style={{
+                      color: c.textFaint,
+                    }}
+                  />
+
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                    disabled={isLoading}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      py-3
+                      pl-10
+                      pr-4
+                      text-sm
+                      outline-none
+                      transition-all
+                      duration-200
+                    "
+                    style={{
+                      background: `${c.bg}90`,
+                      borderColor: c.border,
+                      color: c.text,
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = `${c.primary}70`;
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${c.primary}10`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = c.border;
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  />
+                </div>
               </div>
-            </motion.div>
 
-            {/* Password input field */}
-            <motion.div
-              custom={2}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-[#d1d5db] mb-2"
-              >
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#9ca3af]" />
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-[#e2e8f0] placeholder-[#9ca3af] focus:outline-none focus:ring-2 focus:ring-[#818cf8] focus:border-transparent transition-all duration-200"
-                  disabled={isLoading}
-                />
+              {/* Password */}
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <label
+                    htmlFor="password"
+                    className="text-xs font-medium"
+                    style={{
+                      color: c.text,
+                    }}
+                  >
+                    Password
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => console.log("Navigate to forgot password")}
+                    className="text-xs transition-colors"
+                    style={{
+                      color: c.primary,
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <Lock
+                    className="
+                      pointer-events-none
+                      absolute
+                      left-3.5
+                      top-1/2
+                      h-4
+                      w-4
+                      -translate-y-1/2
+                    "
+                    style={{
+                      color: c.textFaint,
+                    }}
+                  />
+
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    disabled={isLoading}
+                    className="
+                      w-full
+                      rounded-xl
+                      border
+                      py-3
+                      pl-10
+                      pr-11
+                      text-sm
+                      outline-none
+                      transition-all
+                      duration-200
+                    "
+                    style={{
+                      background: `${c.bg}90`,
+                      borderColor: c.border,
+                      color: c.text,
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = `${c.primary}70`;
+                      e.currentTarget.style.boxShadow = `0 0 0 3px ${c.primary}10`;
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = c.border;
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="
+                      absolute
+                      right-3.5
+                      top-1/2
+                      -translate-y-1/2
+                    "
+                    style={{
+                      color: c.textFaint,
+                    }}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-            </motion.div>
 
-            {/* Error message display */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-sm"
-              >
-                {error}
-              </motion.div>
-            )}
+              {/* Error */}
 
-
-
-            {/* Submit button */}
-            <motion.button
-              custom={3}
-              variants={fadeInVariants}
-              initial="hidden"
-              animate="visible"
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-[#818cf8] text-[#0f172a] font-semibold rounded-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-[#818cf8]/25"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-[#0f172a]/30 border-t-[#0f172a] rounded-full animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  Sign In
-                </>
+              {error && (
+                <motion.div
+                  initial={{
+                    opacity: 0,
+                    y: -5,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  className="
+                    rounded-xl
+                    border
+                    px-4
+                    py-3
+                    text-xs
+                  "
+                  style={{
+                    background: `${c.danger}08`,
+                    borderColor: `${c.danger}20`,
+                    color: c.danger,
+                  }}
+                >
+                  {error}
+                </motion.div>
               )}
-            </motion.button>
-          </form>
 
-          {/* Footer links */}
-          <motion.div
-            custom={4}
-            variants={fadeInVariants}
-            initial="hidden"
-            animate="visible"
-            className="mt-6 text-center space-y-2"
-          >
-            <p className="text-sm text-[#9ca3af]">
-              Don't have an account?{" "}
+              {/* Submit */}
+
               <button
-                type="button"
-                className="text-[#818cf8] hover:text-[#818cf8]/80 transition-colors duration-200"
-                onClick={() => navigate("/signup")}
+                type="submit"
+                disabled={isLoading}
+                className="
+                  flex
+                  w-full
+                  items-center
+                  justify-center
+                  gap-2
+                  rounded-xl
+                  py-3.5
+                  text-sm
+                  font-semibold
+                  transition-all
+                  duration-200
+                  hover:scale-[1.01]
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                "
+                style={{
+                  background: c.primary,
+                  color: c.bg,
+                  boxShadow: `0 10px 30px ${c.primary}25`,
+                }}
               >
-                Sign up
+                {isLoading ? (
+                  <>
+                    <span
+                      className="
+                        h-4
+                        w-4
+                        animate-spin
+                        rounded-full
+                        border-2
+                      "
+                      style={{
+                        borderColor: `${c.bg}40`,
+                        borderTopColor: c.bg,
+                      }}
+                    />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="h-4 w-4" />
+                    Sign in
+                  </>
+                )}
               </button>
-            </p>
-            <p className="text-sm text-[#9ca3af]">
-              Forgot your password?{" "}
-              <button
-                type="button"
-                className="text-[#818cf8] hover:text-[#818cf8]/80 transition-colors duration-200"
-                onClick={() => console.log("Navigate to forgot password")}
+            </form>
+
+            {/* ================================================== */}
+            {/* SECURITY */}
+            {/* ================================================== */}
+
+            <div
+              className="
+                mt-6
+                flex
+                items-center
+                justify-center
+                gap-2
+                text-center
+              "
+              style={{
+                color: c.textFaint,
+              }}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+
+              <span className="text-[11px]">
+                Your account information stays private.
+              </span>
+            </div>
+
+            {/* Divider */}
+
+            <div className="my-7 flex items-center gap-3">
+              <div
+                className="h-px flex-1"
+                style={{
+                  background: c.border,
+                }}
+              />
+
+              <span
+                className="text-[10px] uppercase tracking-wider"
+                style={{
+                  color: c.textFaint,
+                }}
               >
-                Reset it
-              </button>
-            </p>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
+                New here?
+              </span>
+
+              <div
+                className="h-px flex-1"
+                style={{
+                  background: c.border,
+                }}
+              />
+            </div>
+
+            {/* Signup */}
+
+            <button
+              type="button"
+              onClick={() => navigate("/signup")}
+              className="
+                w-full
+                rounded-xl
+                border
+                py-3
+                text-sm
+                font-medium
+                transition-all
+                duration-200
+                hover:bg-white/5
+              "
+              style={{
+                borderColor: c.border,
+                color: c.text,
+              }}
+            >
+              Create an account
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Bottom */}
+
+        <motion.p
+          initial={{
+            opacity: 0,
+          }}
+          animate={{
+            opacity: 1,
+          }}
+          transition={{
+            delay: 0.8,
+            duration: 0.5,
+          }}
+          className="mt-6 text-center text-[11px]"
+          style={{
+            color: c.textFaint,
+          }}
+        >
+          Smart Expenses · Manage your money with clarity.
+        </motion.p>
+      </div>
+    </main>
   );
 }
+
+export default LoginPage;

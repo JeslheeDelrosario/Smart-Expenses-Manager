@@ -527,7 +527,7 @@ export default function TransactionsPage() {
                           : "border-[#4b5563] bg-[#0f172a] text-gray-300 hover:border-[#818cf8]/50"
                       }`}
                     >
-                      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                       <span className="truncate">{cat.name}</span>
                     </button>
                   ))}

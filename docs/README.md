@@ -5,7 +5,7 @@
 > **Current Project Phase: Early MVP Development (Phase 1)**  
 > We're in the initial stages of building the foundation for this application. Core authentication and layout infrastructure is being established before implementing the main expense tracking features.
 
-![App screenshot / hero image placeholder](https://via.placeholder.com/800x400?text=Smart+Expenses+Manager+-+Coming+Soon)  
+![App screenshot / hero image placeholder](./images/landingpage.jpeg)
 *(Screenshots will be added as core features are implemented)*
 
 ## 🎯 Project Goal & Vision
@@ -124,6 +124,59 @@ interface AuthContextType {
 ### Protected Route Component
 Located at `src/components/ProtectedRoute.tsx`, this component wraps all authenticated routes to ensure only logged-in users can access them.
 
+### Scroll to Top Component
+Located at `src/components/ScrollToTop.tsx`, this global component provides a convenient way for users to return to the top of any long page.
+
+#### Key ScrollToTop Features:
+- **Global Availability**: Added in App.tsx, appears on all pages automatically
+- **Smart Visibility**: Only shows when user scrolls down more than 300px
+- **Smooth Animations**: Uses framer-motion for entrance/exit and hover effects
+- **Responsive Design**: Fixed at bottom-right corner (8px from edges)
+- **Accessibility**: Includes proper ARIA label for screen readers
+- **Theme Consistency**: Uses app's existing primary/secondary gradient colors
+
+## 🎨 Complete Landing Page Redesign
+The landing page has been completely redesigned with modern UI components and improved UX, featuring a ledger-inspired financial dashboard aesthetic.
+
+### Redesign Components:
+#### Core Landing Page Sections
+- **Ledger-inspired Hero**: Modern hero section with live transaction preview (`Hero.tsx`)
+- **Bento Grid Features**: Comprehensive feature showcase with interactive cards (`BentoFeatures.tsx`)
+- **Smart Insights**: Highlights AI-powered financial intelligence capabilities (`SmartInsights.tsx`)
+- **How It Works**: Step-by-step onboarding flow with visual progression (`HowItWorks.tsx`)
+- **Final CTA**: Call-to-action section with floating decorative elements (`FinalCTA.tsx`)
+
+#### Navigation Improvements
+- **Sticky Navigation Bar**: Fixed navbar with backdrop blur and ambient glow effects
+- **Smooth Scroll Anchors**: Navigation links scroll smoothly to page sections
+- **Mobile-responsive Menu**: Collapsible mobile menu with framer-motion animations
+- **Brand Animations**: Logo with hover rotation and scale effects
+
+### Design System Updates
+#### Centralized Theme System
+All components now use a centralized theme with consistent color tokens defined in `src/lib/theme.ts`:
+```typescript
+export const colors = {
+  bg: "#0B1120",
+  bgElevated: "#0F172A",
+  primary: "#818CF8",
+  secondary: "#A78BFA",
+  // ... full color palette
+}
+```
+
+#### Modern CSS Class Updates
+- Replaced outdated Tailwind classes: `bg-gradient-to-br` → `bg-linear-to-br`
+- Updated flex utilities: `flex-shrink-0` → `shrink-0`
+- All components use semantic CSS class names for better maintainability
+- Consistent responsive behavior across all breakpoints (mobile → desktop)
+
+### Accessibility Improvements
+- All interactive elements have proper ARIA labels
+- Login/Signup forms include form validation and error messaging
+- Semantic HTML5 structure throughout the application
+- Sufficient color contrast for all text elements
+
 ### How JWT Works:
 1. User logs in → Supabase issues a JWT token
 2. Token is stored in localStorage and sent with every API request
@@ -229,8 +282,17 @@ Smart Expense Manager/
    │  └─ AuthContext.tsx           # Global auth state management (JWT)
    ├─ assets/                      # Static assets (images, fonts)
    ├─ components/
-   │  ├─ ShapeLandingHero.tsx      # Animated landing page hero
-   │  └─ ProtectedRoute.tsx        # Route protection for authenticated pages
+   │  ├─ Navbar.tsx                # Sticky navigation with smooth scroll & mobile menu
+   │  ├─ Hero.tsx                  # Ledger-inspired hero with live transaction preview
+   │  ├─ TrustSection.tsx          # Trust and credibility section
+   │  ├─ BentoFeatures.tsx         # Bento grid feature showcase with interactive cards
+   │  ├─ SmartInsights.tsx         # Financial intelligence & smart insights section
+   │  ├─ HowItWorks.tsx            # Step-by-step user onboarding flow
+   │  ├─ FinalCTA.tsx              # Final call-to-action with floating decorations
+   │  ├─ Footer.tsx                # Page footer with links and copyright
+   │  ├─ DashboardPreview.tsx      # Live dashboard preview component
+   │  ├─ ProtectedRoute.tsx        # Route protection for authenticated pages
+   │  └─ ScrollToTop.tsx           # Animated scroll-to-top button component
    ├─ lib/
    │  ├─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
    │  └─ supabase.ts               # Supabase client configuration
@@ -253,7 +315,14 @@ Smart Expense Manager/
 ✅ **Completed:**
 1. **JWT Authentication System** - AuthContext, protected routes, full login/signup flow
 2. **Main dashboard layout** - Core application shell with all page routes
-3. **Custom theme implementation** - Ocean-inspired dark theme with Tailwind CSS
+3. **Complete landing page redesign** - Modern ledger-inspired design with all requested UI/UX improvements
+4. **Centralized theme system** - Consistent color tokens used across entire application
+5. **Sticky navigation with smooth scroll** - Navbar with scroll anchors and mobile menu
+6. **Bento grid feature showcase** - Interactive feature cards on landing page
+7. **Smart insights section** - Financial intelligence capabilities highlighted
+8. **Step-by-step How It Works flow** - Visual progression for onboarding users
+9. **Updated auth pages** - Refined login/signup forms with improved accessibility
+10. **Scroll-to-top button** - Animated scroll-to-top component with framer-motion, available on all pages
 
 📋 **Remaining Development Tasks:**
 1. **Implement expense data models** - Define TypeScript interfaces for expenses, categories, and users
