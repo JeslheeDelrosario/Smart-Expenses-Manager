@@ -1,333 +1,1120 @@
 # Smart Expenses Manager
 
-**A modern, smart personal expense tracker built to help you understand, control, and optimize your spending habits.**
+> A modern personal finance application designed to help users track expenses, manage budgets, understand spending patterns, and make better financial decisions.
 
-> **Current Project Phase: Early MVP Development (Phase 1)**  
-> We're in the initial stages of building the foundation for this application. Core authentication and layout infrastructure is being established before implementing the main expense tracking features.
+![Smart Expenses Manager Landing Page](../public/images/landingpage.jpeg)
 
-![App screenshot / hero image placeholder](./images/landingpage.jpeg)
-*(Screenshots will be added as core features are implemented)*
+---
 
-## 🎯 Project Goal & Vision
+## 📌 Project Status
 
-The main goal of **Smart Expenses Manager** is to create an **intuitive, powerful, and insightful** personal finance tool that goes beyond simple expense logging.
+> **Current Project Phase: Phase 2 — Core Expense Tracking**
 
-Most expense trackers only record what you spent.  
-**Smart Expenses Manager** aims to help you answer:
+Smart Expenses Manager has completed its initial foundation, including the landing page, authentication system, database setup, protected routes, and the main application layout.
+
+Development is currently focused on building the core expense management features that will allow users to record transactions, manage income and expenses, organize spending by category, and monitor their financial activity.
+
+---
+
+# 🎯 Project Goal & Vision
+
+Most expense trackers simply answer:
+
+> **"How much did I spend?"**
+
+Smart Expenses Manager aims to go further.
+
+The application is designed to help users understand their financial behavior and answer questions such as:
 
 - Where is my money really going?
 - Am I staying within my budget?
-- What patterns can I change to save more?
+- Which categories are taking most of my income?
+- How has my spending changed over time?
+- What spending habits should I improve?
 - How close am I to my financial goals?
 
-It combines clean UX, powerful categorization, visual analytics, and (future) smart insights — all built with **React + TypeScript** for a fast, type-safe, and maintainable codebase.
+The long-term goal is to build a personal finance platform that combines:
 
-## 🚀 Project Roadmap & Current Status
+- Simple expense tracking
+- Income management
+- Budget planning
+- Financial analytics
+- Spending visualizations
+- Personalized financial insights
+- Smart categorization
+- Future AI-powered recommendations
 
-### Phase 1: Foundation & Authentication (✅ Completed)
-✅ **Completed:**
-- Project setup with Vite + React + TypeScript
-- Basic routing configuration (React Router v7)
-- Landing page with geometric hero section
-- Full functional Login page with Supabase auth
-- Full functional Signup page with Supabase auth
-- ShadCN/ui component infrastructure setup
-- Tailwind CSS configuration with animations
-- **Supabase backend fully integrated** (authentication & database)
-- PostgreSQL database schema with RLS policies
-- User-specific data isolation
-- Automatic default category creation for new users
-- **JWT-based authentication system** with AuthContext and protected routes
-- Custom ocean-inspired theme implementation
-- Full responsive dashboard layout with all core pages
+The project is being developed with **React + TypeScript**, with a focus on maintainability, usability, responsive design, and a clean financial dashboard experience.
 
-### Phase 2: Core Expense Tracking (Current - In Progress)
-🔄 **In Development:**
-- Add, edit, and delete expenses functionality
-- Expense categorization system (Food, Transport, Bills, Entertainment, etc.)
-- Income entry support for balance calculation
-- Basic dashboard with transaction list
-- Dashboard layout skeleton
-- Responsive design implementation across all pages
+---
 
-### Phase 2: Core Expense Tracking (Up Next)
-📋 **Planned:**
-- Add, edit, and delete expenses functionality
-- Expense categorization system (Food, Transport, Bills, Entertainment, etc.)
-- Income entry support for balance calculation
-- Basic dashboard with transaction list
-- LocalStorage data persistence
-- Mobile-responsive expense management views
+# 🚀 Project Roadmap
 
-### Phase 3: Analytics & Smart Features
-📋 **Planned:**
-- Interactive charts and data visualizations (Recharts)
-- Monthly budgets per category with alerts
-- Spending trend analysis
-- Data export (CSV/PDF)
-- Dark/Light theme toggle
-- Multi-currency support
+## Phase 1 — Foundation & Authentication
 
-### Phase 4: Cloud & Advanced Features
-📋 **Planned:**
-- User authentication backend integration
-- Cloud sync & data persistence
-- Smart AI-powered categorization suggestions
-- Receipt photo upload with OCR parsing
-- Mobile app deployment considerations
+**Status: ✅ Completed**
 
-## 🛠️ Current Tech Stack
+The first phase focused on establishing the technical foundation of the application.
 
-| Area            | Technology                          | Status                               | Purpose                              |
-|-----------------|-------------------------------------|--------------------------------------|--------------------------------------|
-| Frontend        | React 19                            | ✅ Installed                          | Modern UI library with latest features |
-| Language        | TypeScript ~5.9                     | ✅ Installed                          | Type safety & improved developer experience |
-| Styling         | Tailwind CSS 4.2                    | ✅ Installed                          | Utility-first CSS framework          |
-| UI Components   | shadcn/ui (with tailwind-animate)   | ✅ Configured                         | Reusable, accessible component library |
-| Animations      | Framer Motion 12                    | ✅ Installed                          | Smooth animations and interactions   |
-| Icons           | Lucide React 0.576                  | ✅ Installed                          | Modern icon library                   |
-| Routing         | React Router v7                     | ✅ Installed                          | Client-side navigation                |
-| Build Tool      | Vite 7.3                             | ✅ Installed                         | Fast development server & builds     |
-| Linting         | ESLint 9 + TypeScript-ESLint        | ✅ Configured                         | Code quality enforcement              |
-| Backend/Auth    | Supabase                            | ✅ Installed & Integrated             | User authentication & cloud storage  |
-| Database        | PostgreSQL (Supabase)               | ✅ Implemented                        | Relational database with RLS policies |
-| Database SDK    | @supabase/supabase-js               | ✅ Installed                          | Supabase client for frontend integration |
-| **Planned Additions** |                                     |                                      |                                      |
-| State Management| Zustand                             | 📋 Planned                            | Lightweight state management         |
-| Charts          | Recharts                            | 📋 Planned                            | Data visualization & analytics      |
-| Forms           | React Hook Form + Zod               | 📋 Planned                            | Type-safe form validation            |
+### Completed
 
-## 🔐 Authentication System (JWT-based)
+- ✅ Vite + React + TypeScript project setup
+- ✅ React Router v7 routing
+- ✅ Landing page implementation
+- ✅ Responsive navigation bar
+- ✅ Hero section
+- ✅ Features section
+- ✅ Smart Insights section
+- ✅ How It Works section
+- ✅ Final Call-to-Action section
+- ✅ Footer
+- ✅ Login page
+- ✅ Signup page
+- ✅ Supabase authentication
+- ✅ JWT-based authentication
+- ✅ AuthContext
+- ✅ Protected routes
+- ✅ Automatic session handling
+- ✅ PostgreSQL database
+- ✅ Row Level Security (RLS)
+- ✅ User-specific data isolation
+- ✅ Automatic default category creation
+- ✅ Dashboard layout foundation
+- ✅ Transactions page foundation
+- ✅ Income page foundation
+- ✅ Budgets page foundation
+- ✅ Account page foundation
+- ✅ Settings page foundation
+- ✅ Scroll-to-top component
+- ✅ Centralized theme system
+- ✅ Responsive layout structure
+- ✅ Tailwind CSS configuration
+- ✅ Framer Motion animations
+- ✅ shadcn/ui infrastructure
+- ✅ Lucide icons
 
-The application implements **JWT-based authentication** using Supabase's authentication system, which automatically handles token generation, storage, and refresh.
+---
 
-### Key Authentication Features:
-- **Global Auth State Management**: `AuthContext` provides authentication state throughout the app
-- **Protected Routes**: Only authenticated users can access dashboard pages
-- **Automatic Session Management**: Supabase handles JWT token refresh automatically
-- **Secure Storage**: Tokens are stored securely in browser localStorage
-- **Redirect Logic**: Unauthenticated users are redirected to login page
+# Phase 2 — Core Expense Tracking
 
-### AuthContext Implementation
-Located at `src/contexts/AuthContext.tsx`, the context provides:
+**Status: 🔄 In Progress**
+
+The current development phase focuses on making the application functional as a personal expense tracker.
+
+### Currently Developing
+
+- 🔄 Expense data models
+- 🔄 Expense creation
+- 🔄 Expense editing
+- 🔄 Expense deletion
+- 🔄 Expense categorization
+- 🔄 Transaction listing
+- 🔄 Income entry
+- 🔄 Balance calculation
+- 🔄 Dashboard financial summaries
+- 🔄 Responsive expense management
+- 🔄 Supabase CRUD operations
+
+### Planned for Phase 2
+
+- 📋 Search transactions
+- 📋 Filter transactions by category
+- 📋 Filter transactions by date
+- 📋 Sort transactions
+- 📋 Transaction details
+- 📋 Expense validation
+- 📋 Income validation
+- 📋 Empty states
+- 📋 Loading states
+- 📋 Error handling improvements
+
+---
+
+# Phase 3 — Analytics & Budget Management
+
+**Status: 📋 Planned**
+
+Once the core transaction system is stable, the next phase will focus on helping users understand their financial activity.
+
+### Planned Features
+
+- 📋 Interactive spending charts
+- 📋 Monthly spending summaries
+- 📋 Category-based analytics
+- 📋 Spending trends
+- 📋 Income vs. expense comparison
+- 📋 Monthly budgets
+- 📋 Category budgets
+- 📋 Budget progress indicators
+- 📋 Budget alerts
+- 📋 Overspending notifications
+- 📋 Financial summary cards
+- 📋 Monthly financial reports
+- 📋 Recharts integration
+- 📋 CSV export
+- 📋 PDF reports
+
+---
+
+# Phase 4 — Smart Financial Features
+
+**Status: 📋 Planned**
+
+This phase will introduce intelligent features that go beyond traditional expense tracking.
+
+### Planned Features
+
+- 📋 Smart spending insights
+- 📋 Spending pattern detection
+- 📋 Personalized budget recommendations
+- 📋 AI-powered expense categorization
+- 📋 Unusual spending detection
+- 📋 Monthly financial summaries
+- 📋 Personalized saving suggestions
+- 📋 Financial goal tracking
+- 📋 Smart notifications
+- 📋 Spending habit recommendations
+
+---
+
+# Phase 5 — Advanced & Cloud Features
+
+**Status: 📋 Planned**
+
+The final planned phase will focus on expanding the application and improving its long-term usability.
+
+### Planned Features
+
+- 📋 Receipt image upload
+- 📋 OCR-based receipt parsing
+- 📋 Automatic transaction extraction
+- 📋 Multi-currency support
+- 📋 Cloud synchronization
+- 📋 Data backup
+- 📋 Data import
+- 📋 Advanced account management
+- 📋 Mobile application
+- 📋 Progressive Web App support
+- 📋 Dark/Light theme switching
+- 📋 Advanced notification system
+
+---
+
+# 🛠️ Tech Stack
+
+| Area | Technology | Status | Purpose |
+|---|---|---|---|
+| Frontend | React 19 | ✅ | User interface |
+| Language | TypeScript ~5.9 | ✅ | Type safety and maintainability |
+| Styling | Tailwind CSS 4.2 | ✅ | Responsive styling |
+| UI Components | shadcn/ui | ✅ | Reusable UI components |
+| Animations | Framer Motion 12 | ✅ | UI animations and transitions |
+| Icons | Lucide React 0.576 | ✅ | Interface icons |
+| Routing | React Router v7 | ✅ | Client-side routing |
+| Build Tool | Vite 7.3 | ✅ | Development and production builds |
+| Linting | ESLint 9 | ✅ | Code quality |
+| Authentication | Supabase Auth | ✅ | User authentication |
+| Backend | Supabase | ✅ | Backend services |
+| Database | PostgreSQL | ✅ | Application data storage |
+| Database Security | Supabase RLS | ✅ | User data isolation |
+| Database SDK | @supabase/supabase-js | ✅ | Supabase integration |
+| State Management | Zustand | 📋 Planned | Global application state |
+| Charts | Recharts | 📋 Planned | Financial data visualization |
+| Forms | React Hook Form | 📋 Planned | Form management |
+| Validation | Zod | 📋 Planned | Schema validation |
+
+---
+
+# 🔐 Authentication System
+
+Smart Expenses Manager uses **Supabase Authentication** with JWT-based sessions.
+
+Supabase handles authentication, session management, token refresh, and user identity.
+
+## Authentication Features
+
+### Global Authentication State
+
+The application uses an `AuthContext` to make authentication information available throughout the application.
+
+Located at:
+
+```text
+src/contexts/AuthContext.tsx
+````
+
+The context provides:
+
 ```typescript
 interface AuthContextType {
-  user: User | null;           // Current user object
-  session: Session | null;     // Current Supabase session
-  isLoading: boolean;          // Auth state loading flag
-  signIn: (email, password) => Promise<void>;
-  signUp: (email, password, fullName) => Promise<void>;
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<void>;
   signOut: () => Promise<void>;
 }
 ```
 
-### Protected Route Component
-Located at `src/components/ProtectedRoute.tsx`, this component wraps all authenticated routes to ensure only logged-in users can access them.
+### Protected Routes
 
-### Scroll to Top Component
-Located at `src/components/ScrollToTop.tsx`, this global component provides a convenient way for users to return to the top of any long page.
+Authenticated pages are protected using:
 
-#### Key ScrollToTop Features:
-- **Global Availability**: Added in App.tsx, appears on all pages automatically
-- **Smart Visibility**: Only shows when user scrolls down more than 300px
-- **Smooth Animations**: Uses framer-motion for entrance/exit and hover effects
-- **Responsive Design**: Fixed at bottom-right corner (8px from edges)
-- **Accessibility**: Includes proper ARIA label for screen readers
-- **Theme Consistency**: Uses app's existing primary/secondary gradient colors
+```text
+src/components/ProtectedRoute.tsx
+```
 
-## 🎨 Complete Landing Page Redesign
-The landing page has been completely redesigned with modern UI components and improved UX, featuring a ledger-inspired financial dashboard aesthetic.
+Users who are not authenticated are redirected to the login page.
 
-### Redesign Components:
-#### Core Landing Page Sections
-- **Ledger-inspired Hero**: Modern hero section with live transaction preview (`Hero.tsx`)
-- **Bento Grid Features**: Comprehensive feature showcase with interactive cards (`BentoFeatures.tsx`)
-- **Smart Insights**: Highlights AI-powered financial intelligence capabilities (`SmartInsights.tsx`)
-- **How It Works**: Step-by-step onboarding flow with visual progression (`HowItWorks.tsx`)
-- **Final CTA**: Call-to-action section with floating decorative elements (`FinalCTA.tsx`)
+### Session Management
 
-#### Navigation Improvements
-- **Sticky Navigation Bar**: Fixed navbar with backdrop blur and ambient glow effects
-- **Smooth Scroll Anchors**: Navigation links scroll smoothly to page sections
-- **Mobile-responsive Menu**: Collapsible mobile menu with framer-motion animations
-- **Brand Animations**: Logo with hover rotation and scale effects
+Supabase automatically manages:
 
-### Design System Updates
-#### Centralized Theme System
-All components now use a centralized theme with consistent color tokens defined in `src/lib/theme.ts`:
+* JWT sessions
+* Session persistence
+* Token refresh
+* Authentication state changes
+* Logout handling
+
+### User Data Isolation
+
+The PostgreSQL database uses **Row Level Security (RLS)** to ensure users can only access their own financial data.
+
+---
+
+# 🗄️ Database
+
+The application uses:
+
+* **Supabase**
+* **PostgreSQL**
+* **Row Level Security (RLS)**
+
+The database schema is located at:
+
+```text
+supabase-schema.sql
+```
+
+The database is designed around user-specific financial information.
+
+Expected core entities include:
+
+```text
+Users
+ ├── Expenses
+ ├── Income
+ ├── Categories
+ ├── Budgets
+ └── Financial Goals
+```
+
+Each user's financial records are isolated through Supabase RLS policies.
+
+---
+
+# 🎨 Design System
+
+Smart Expenses Manager uses a dark, ocean-inspired financial interface.
+
+The design focuses on:
+
+* Clean layouts
+* Subtle borders
+* Soft gradients
+* Minimal visual noise
+* Strong typography
+* Financial data readability
+* Responsive layouts
+* Smooth interactions
+
+The landing page uses a modern ledger-inspired aesthetic rather than a traditional finance dashboard.
+
+---
+
+## 🎨 Theme Colors
+
+| Purpose      | Hex       | Description                         |
+| ------------ | --------- | ----------------------------------- |
+| Background   | `#091114` | Main application background         |
+| Primary Text | `#ECF1F3` | Main readable text                  |
+| Primary      | `#98C9DE` | Main actions and buttons            |
+| Secondary    | `#1A6382` | Secondary UI elements               |
+| Accent       | `#22ADE7` | Interactive elements and highlights |
+
+The application also uses centralized theme tokens through:
+
+```text
+src/lib/theme.ts
+```
+
+Example:
+
 ```typescript
 export const colors = {
   bg: "#0B1120",
   bgElevated: "#0F172A",
   primary: "#818CF8",
   secondary: "#A78BFA",
-  // ... full color palette
-}
+};
 ```
 
-#### Modern CSS Class Updates
-- Replaced outdated Tailwind classes: `bg-gradient-to-br` → `bg-linear-to-br`
-- Updated flex utilities: `flex-shrink-0` → `shrink-0`
-- All components use semantic CSS class names for better maintainability
-- Consistent responsive behavior across all breakpoints (mobile → desktop)
+Keeping the theme centralized makes it easier to update the visual identity of the application without changing every component individually.
 
-### Accessibility Improvements
-- All interactive elements have proper ARIA labels
-- Login/Signup forms include form validation and error messaging
-- Semantic HTML5 structure throughout the application
-- Sufficient color contrast for all text elements
+---
 
-### How JWT Works:
-1. User logs in → Supabase issues a JWT token
-2. Token is stored in localStorage and sent with every API request
-3. Tokens are automatically refreshed before expiration
-4. On logout, tokens are cleared from storage
+# 🖥️ Landing Page
 
-## 🎨 Theme Customization
+The landing page introduces the application and communicates its main purpose before users enter the dashboard.
 
-The application features a custom **ocean-inspired dark theme** with blue-centric colors, defined in `src/index.css` using Tailwind CSS's CSS variable system.
+## Main Sections
 
-### Current Theme Colors
-| Purpose    | Hex       | RGB              | HSL               | Description                              |
-|------------|-----------|------------------|-------------------|------------------------------------------|
-| Text       | `#ecf1f3` | rgb(236, 241, 243)| hsl(197, 23%, 94%)| Primary text color for readability        |
-| Background | `#091114` | rgb(9, 17, 20)   | hsl(196, 38%, 6%) | Main page background (deep dark blue)    |
-| Primary    | `#98c9de` | rgb(152, 201, 222)| hsl(198, 51%, 73%)| Primary brand color for buttons/actions  |
-| Secondary  | `#1a6382` | rgb(26, 99, 130) | hsl(198, 67%, 31%)| Secondary color for cards and borders    |
-| Accent     | `#22ade7` | rgb(34, 173, 231)| hsl(198, 80%, 52%)| Bright accent color for interactive elements |
+### Hero
 
-### Modifying the Theme
-To change the theme colors, edit the CSS variables in the `.dark` selector in `src/index.css`:
+The Hero section introduces Smart Expenses Manager with a financial ledger-inspired interface and transaction preview.
 
-```css
-.dark {
-  --background: oklch(0.086 0.020 196); /* Your background hex converted to oklch */
-  --foreground: oklch(0.943 0.013 197); /* Text color */
-  --primary: oklch(0.801 0.052 198);    /* Primary color */
-  --secondary: oklch(0.425 0.080 198);  /* Secondary color */
-  --accent: oklch(0.730 0.140 198);     /* Accent color */
-}
+```text
+src/components/Hero.tsx
 ```
 
-### Theme Structure
-All components use Tailwind's semantic color classes:
-- `bg-background` → Page background
-- `text-foreground` → Main text color
-- `bg-primary` → Primary button backgrounds
-- `bg-accent` → Accent elements and highlights
-- `border-border` → Border colors
+### Features
 
-This structure makes it easy to update the entire app's theme by changing only the CSS variables.
+Highlights the main capabilities of the application.
 
-## 🚀 Getting Started
+```text
+src/components/FeaturesSection.tsx
+```
 
-### Prerequisites
-- Node.js ≥ 18
-- pnpm / yarn / npm
+### Smart Insights
 
-### Installation & Setup
+Demonstrates the future direction of the application's financial intelligence features.
 
-1. **Clone the repo & install dependencies**
+```text
+src/components/SmartInsights.tsx
+```
+
+Example insight:
+
+> Your spending increased 8.4% this month.
+
+The section demonstrates how the application could eventually identify spending patterns and provide actionable recommendations.
+
+### How It Works
+
+Explains the basic user journey:
+
+```text
+Track → Understand → Improve
+```
+
+```text
+src/components/HowItWorks.tsx
+```
+
+### Final CTA
+
+Encourages users to create an account and begin managing their finances.
+
+```text
+src/components/FinalCTA.tsx
+```
+
+### Footer
+
+Contains application information and navigation links.
+
+```text
+src/components/Footer.tsx
+```
+
+---
+
+# 📱 Authentication Pages
+
+## Login
+
+Located at:
+
+```text
+src/pages/Login.tsx
+```
+
+Features:
+
+* Email login
+* Password authentication
+* Input validation
+* Loading state
+* Error handling
+* Supabase authentication
+* Automatic dashboard redirect
+* Signup navigation
+* Password reset entry point
+
+---
+
+## Signup
+
+Located at:
+
+```text
+src/pages/Signup.tsx
+```
+
+Features:
+
+* Full name registration
+* Email registration
+* Password creation
+* Password confirmation
+* Password visibility toggle
+* Form validation
+* Error handling
+* Success feedback
+* Email verification support
+* Login navigation
+
+---
+
+# 📊 Application Pages
+
+The application currently contains the following core pages:
+
+| Page         | Purpose                            | Status |
+| ------------ | ---------------------------------- | ------ |
+| Landing Page | Public application introduction    | ✅      |
+| Login        | User authentication                | ✅      |
+| Signup       | User registration                  | ✅      |
+| Dashboard    | Financial overview                 | 🔄     |
+| Transactions | Expense and transaction management | 🔄     |
+| Income       | Income tracking                    | 🔄     |
+| Budgets      | Budget management                  | 📋     |
+| Account      | User profile                       | 🔄     |
+| Settings     | Application preferences            | 🔄     |
+
+---
+
+# 🔄 Application Flow
+
+The intended user flow is:
+
+```text
+Landing Page
+      │
+      ▼
+   Sign Up
+      │
+      ▼
+Email Verification
+      │
+      ▼
+    Login
+      │
+      ▼
+   Dashboard
+      │
+      ├── Transactions
+      │
+      ├── Income
+      │
+      ├── Budgets
+      │
+      ├── Account
+      │
+      └── Settings
+```
+
+---
+
+# 📁 Project Structure
+
+```text
+Smart Expense Manager/
+│
+├── components.json
+├── eslint.config.js
+├── index.html
+├── package.json
+├── package-lock.json
+├── postcss.config.js
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.app.json
+├── tsconfig.node.json
+├── vite.config.ts
+├── README.md
+├── .env.local
+├── .gitignore
+├── supabase-schema.sql
+│
+├── public/
+│   └── vite.svg
+│
+└── src/
+    │
+    ├── App.tsx
+    ├── index.css
+    └── main.tsx
+    │
+    ├── assets/
+    │   └── ...
+    │
+    ├── components/
+    │   ├── Navbar.tsx
+    │   ├── Hero.tsx
+    │   ├── FeaturesSection.tsx
+    │   ├── SmartInsights.tsx
+    │   ├── HowItWorks.tsx
+    │   ├── FinalCTA.tsx
+    │   ├── Footer.tsx
+    │   ├── DashboardPreview.tsx
+    │   ├── ProtectedRoute.tsx
+    │   └── ScrollToTop.tsx
+    │
+    ├── contexts/
+    │   └── AuthContext.tsx
+    │
+    ├── lib/
+    │   ├── theme.ts
+    │   ├── utils.ts
+    │   └── supabase.ts
+    │
+    ├── services/
+    │   ├── auth.ts
+    │   └── expenses.ts
+    │
+    └── pages/
+        ├── LandingPage.tsx
+        ├── Login.tsx
+        ├── Signup.tsx
+        ├── Dashboard.tsx
+        ├── Transactions.tsx
+        ├── Income.tsx
+        ├── Budgets.tsx
+        ├── Account.tsx
+        └── Settings.tsx
+```
+
+---
+
+# ⚙️ Getting Started
+
+## Prerequisites
+
+Make sure the following are installed:
+
+* Node.js 18 or higher
+* npm, pnpm, or yarn
+* A Supabase account
+
+---
+
+## 1. Clone the Repository
+
 ```bash
-# Clone the repo
 git clone https://github.com/yourusername/smart-expenses-manager.git
 cd smart-expenses-manager
+```
 
-# Install dependencies
+---
+
+## 2. Install Dependencies
+
+Using npm:
+
+```bash
 npm install
 ```
 
-2. **Set up Supabase (required for authentication & database)**
-- Create a project at https://supabase.com
-- Copy your project URL and anon key from Settings → API
-- Create a `.env.local` file in the root:
+Or using pnpm:
+
+```bash
+pnpm install
+```
+
+Or using yarn:
+
+```bash
+yarn install
+```
+
+---
+
+# 3. Configure Supabase
+
+Create a project using Supabase.
+
+You will need:
+
+* Supabase Project URL
+* Supabase Anon/Public Key
+
+Create a `.env.local` file in the project root:
+
 ```env
 VITE_SUPABASE_URL="https://your-project-ref.supabase.co"
 VITE_SUPABASE_ANON_KEY="your-anon-key-here"
 ```
-- Run the SQL schema from `supabase-schema.sql` in your Supabase SQL Editor
-- Add `http://localhost:5173` to Supabase → Settings → API → Allowed origins (CORS)
 
-3. **Start development server**
+---
+
+# 4. Configure the Database
+
+Open the Supabase SQL Editor and run:
+
+```text
+supabase-schema.sql
+```
+
+This creates the required PostgreSQL tables, relationships, policies, and user-specific data protection.
+
+---
+
+# 5. Configure Authentication
+
+In Supabase, configure the authentication settings according to your development environment.
+
+For local development, your application will normally run at:
+
+```text
+http://localhost:5173
+```
+
+Make sure the appropriate URL is configured in the Supabase authentication settings.
+
+---
+
+# 6. Start the Development Server
+
 ```bash
 npm run dev
-
-
-
-## 📁 Current Project Structure
-```
-Smart Expense Manager/
-├─ components.json                 # shadcn/ui configuration
-├─ eslint.config.js                # ESLint configuration
-├─ index.html                      # Entry HTML file
-├─ package.json                    # Dependencies & scripts
-├─ package-lock.json               # Lockfile
-├─ postcss.config.js               # PostCSS configuration
-├─ tailwind.config.js              # Tailwind CSS configuration
-├─ tsconfig.app.json               # App TypeScript config
-├─ tsconfig.json                   # Root TypeScript config (fixed deprecations)
-├─ tsconfig.node.json              # Node TypeScript config
-├─ vite.config.ts                  # Vite build configuration
-├─ README.md                       # Project documentation
-├─ .env.local                      # Environment variables (Supabase credentials)
-├─ .gitignore
-├─ supabase-schema.sql             # Full PostgreSQL database schema
-├─ public/
-│  └─ vite.svg
-└─ src/
-   ├─ App.tsx                      # Main app component with routing & AuthProvider
-   ├─ index.css                    # Global styles & theme configuration
-   ├─ main.tsx                     # React DOM entry point
-   ├─ contexts/
-   │  └─ AuthContext.tsx           # Global auth state management (JWT)
-   ├─ assets/                      # Static assets (images, fonts)
-   ├─ components/
-   │  ├─ Navbar.tsx                # Sticky navigation with smooth scroll & mobile menu
-   │  ├─ Hero.tsx                  # Ledger-inspired hero with live transaction preview
-   │  ├─ TrustSection.tsx          # Trust and credibility section
-   │  ├─ BentoFeatures.tsx         # Bento grid feature showcase with interactive cards
-   │  ├─ SmartInsights.tsx         # Financial intelligence & smart insights section
-   │  ├─ HowItWorks.tsx            # Step-by-step user onboarding flow
-   │  ├─ FinalCTA.tsx              # Final call-to-action with floating decorations
-   │  ├─ Footer.tsx                # Page footer with links and copyright
-   │  ├─ DashboardPreview.tsx      # Live dashboard preview component
-   │  ├─ ProtectedRoute.tsx        # Route protection for authenticated pages
-   │  └─ ScrollToTop.tsx           # Animated scroll-to-top button component
-   ├─ lib/
-   │  ├─ utils.ts                  # Utility functions (including clsx/tailwind-merge)
-   │  └─ supabase.ts               # Supabase client configuration
-   ├─ services/
-   │  ├─ auth.ts                   # Authentication service (login/logout)
-   │  └─ expenses.ts               # Expenses CRUD service
-   └─ pages/
-      ├─ LandingPage.tsx           # Main landing page
-      ├─ Login.tsx                 # Full functional login page
-      ├─ Signup.tsx                # Full functional signup page
-      ├─ Dashboard.tsx             # Main dashboard page
-      ├─ Transactions.tsx          # Transactions management page
-      ├─ Income.tsx                # Income tracking page
-      ├─ Budgets.tsx               # Budget management page
-      ├─ Account.tsx               # User account & profile page
-      └─ Settings.tsx              # Application settings page
 ```
 
-## 🎯 Next Steps for Development
-✅ **Completed:**
-1. **JWT Authentication System** - AuthContext, protected routes, full login/signup flow
-2. **Main dashboard layout** - Core application shell with all page routes
-3. **Complete landing page redesign** - Modern ledger-inspired design with all requested UI/UX improvements
-4. **Centralized theme system** - Consistent color tokens used across entire application
-5. **Sticky navigation with smooth scroll** - Navbar with scroll anchors and mobile menu
-6. **Bento grid feature showcase** - Interactive feature cards on landing page
-7. **Smart insights section** - Financial intelligence capabilities highlighted
-8. **Step-by-step How It Works flow** - Visual progression for onboarding users
-9. **Updated auth pages** - Refined login/signup forms with improved accessibility
-10. **Scroll-to-top button** - Animated scroll-to-top component with framer-motion, available on all pages
+The application should then be available at:
 
-📋 **Remaining Development Tasks:**
-1. **Implement expense data models** - Define TypeScript interfaces for expenses, categories, and users
-2. **Add advanced state management** - Integrate Zustand for global state management
-3. **Build CRUD operations** - Create the ability to add, edit, and delete expenses
-4. **Implement basic charts** - Add Recharts to visualize spending patterns
-5. **Add budget tracking features** - Create budget creation and monitoring system
-6. **Mobile responsiveness polish** - Ensure all features work well on mobile devices
+```text
+http://localhost:5173
+```
+
+---
+
+# 🧪 Development Commands
+
+## Start Development Server
+
+```bash
+npm run dev
+```
+
+## Build for Production
+
+```bash
+npm run build
+```
+
+## Preview Production Build
+
+```bash
+npm run preview
+```
+
+## Run ESLint
+
+```bash
+npm run lint
+```
+
+---
+
+# 🔒 Environment Variables
+
+Never commit your environment variables or secrets to GitHub.
+
+The `.env.local` file should remain local:
+
+```text
+.env.local
+```
+
+Example:
+
+```env
+VITE_SUPABASE_URL="your-supabase-url"
+VITE_SUPABASE_ANON_KEY="your-supabase-anon-key"
+```
+
+Make sure `.env.local` is included in `.gitignore`.
+
+---
+
+# 🧩 Core Components
+
+## AuthContext
+
+Handles global authentication state.
+
+```text
+src/contexts/AuthContext.tsx
+```
+
+Responsibilities:
+
+* Track the current user
+* Track the current session
+* Sign in
+* Sign up
+* Sign out
+* Monitor authentication state
+* Handle loading states
+
+---
+
+## ProtectedRoute
+
+Controls access to authenticated pages.
+
+```text
+src/components/ProtectedRoute.tsx
+```
+
+Users who are not logged in cannot access protected application pages.
+
+---
+
+## ScrollToTop
+
+Provides a floating scroll-to-top control.
+
+```text
+src/components/ScrollToTop.tsx
+```
+
+Features:
+
+* Appears after scrolling
+* Smooth scrolling
+* Framer Motion animations
+* Responsive positioning
+* Accessible button label
+
+---
+
+# 📈 Planned Dashboard
+
+The dashboard will eventually provide a quick overview of the user's financial situation.
+
+Planned dashboard information includes:
+
+```text
+┌─────────────────────────────────────┐
+│ Total Balance                       │
+├──────────────────┬──────────────────┤
+│ Total Income     │ Total Expenses   │
+├──────────────────┴──────────────────┤
+│ Spending Overview                   │
+├─────────────────────────────────────┤
+│ Recent Transactions                 │
+├─────────────────────────────────────┤
+│ Budget Progress                     │
+└─────────────────────────────────────┘
+```
+
+Future versions will add interactive charts and smart financial insights.
+
+---
+
+# 💰 Expense Management
+
+The core expense system will support:
+
+### Expense Fields
+
+Planned fields include:
+
+```text
+Expense
+├── ID
+├── User ID
+├── Amount
+├── Category
+├── Description
+├── Date
+├── Payment Method
+├── Notes
+└── Created At
+```
+
+Users will eventually be able to:
+
+* Add expenses
+* Edit expenses
+* Delete expenses
+* Categorize expenses
+* Search expenses
+* Filter expenses
+* Sort expenses
+* View transaction details
+
+---
+
+# 💵 Income Management
+
+Income tracking will allow users to record money received from different sources.
+
+Potential income categories include:
+
+* Salary
+* Freelance
+* Business
+* Allowance
+* Investment
+* Other
+
+Income data will be used to calculate:
+
+```text
+Balance = Total Income - Total Expenses
+```
+
+---
+
+# 📊 Budget Management
+
+The budget system will allow users to set spending limits.
+
+Example:
+
+```text
+Food & Dining
+Budget: ₱5,000
+
+Spent: ₱3,750
+
+Remaining: ₱1,250
+```
+
+Future budget features will include:
+
+* Monthly budgets
+* Category budgets
+* Progress indicators
+* Budget alerts
+* Overspending warnings
+* Spending recommendations
+
+---
+
+# 🤖 Smart Insights
+
+One of the long-term goals of Smart Expenses Manager is to provide meaningful financial insights rather than simply displaying numbers.
+
+Example:
+
+> **Spending increased 8.4% this month.**
+
+> The biggest increase came from **Food & Dining**.
+
+> Consider setting a **₱5,000 monthly dining budget**.
+
+Future versions may analyze:
+
+* Spending trends
+* Category changes
+* Recurring expenses
+* Budget performance
+* Unusual transactions
+* Monthly spending behavior
+
+---
+
+# ♿ Accessibility
+
+The application aims to maintain accessible and user-friendly interfaces.
+
+Current accessibility considerations include:
+
+* Semantic HTML
+* Accessible buttons
+* Form labels
+* ARIA labels where necessary
+* Keyboard-friendly controls
+* Clear error messages
+* Visible focus states
+* Readable color contrast
+* Responsive layouts
+
+---
+
+# 📱 Responsive Design
+
+Smart Expenses Manager is designed to work across:
+
+* Desktop
+* Laptop
+* Tablet
+* Mobile devices
+
+Responsive behavior is implemented using Tailwind CSS breakpoints and responsive component layouts.
+
+---
+
+# 🔮 Future Improvements
+
+Potential future improvements include:
+
+* 📋 Advanced financial reports
+* 📋 Recurring transactions
+* 📋 Subscription tracking
+* 📋 Savings goals
+* 📋 Financial goal tracking
+* 📋 Receipt scanning
+* 📋 OCR transaction extraction
+* 📋 AI-powered categorization
+* 📋 AI spending recommendations
+* 📋 Multi-currency support
+* 📋 Data import/export
+* 📋 PDF reports
+* 📋 Mobile application
+* 📋 PWA support
+* 📋 Offline support
+* 📋 Cloud synchronization
+
+---
+
+# 🎯 Current Development Priorities
+
+The immediate development priorities are:
+
+1. **Implement expense data models**
+2. **Connect expense operations to Supabase**
+3. **Build expense CRUD functionality**
+4. **Implement transaction categories**
+5. **Implement income tracking**
+6. **Connect financial data to the dashboard**
+7. **Add transaction filtering and searching**
+8. **Improve loading and error states**
+9. **Add initial financial summaries**
+10. **Prepare the application for analytics features**
+
+---
+
+# 🗺️ Development Roadmap
+
+```text
+                    SMART EXPENSES MANAGER
+                             │
+                             ▼
+              ┌──────────────────────────┐
+              │ Phase 1                  │
+              │ Foundation & Auth        │
+              │          ✅              │
+              └────────────┬─────────────┘
+                           │
+                           ▼
+              ┌──────────────────────────┐
+              │ Phase 2                  │
+              │ Core Expense Tracking    │
+              │          🔄              │
+              └────────────┬─────────────┘
+                           │
+                           ▼
+              ┌──────────────────────────┐
+              │ Phase 3                  │
+              │ Analytics & Budgets      │
+              │          📋              │
+              └────────────┬─────────────┘
+                           │
+                           ▼
+              ┌──────────────────────────┐
+              │ Phase 4                  │
+              │ Smart Financial Features │
+              │          📋              │
+              └────────────┬─────────────┘
+                           │
+                           ▼
+              ┌──────────────────────────┐
+              │ Phase 5                  │
+              │ Advanced & Cloud         │
+              │          📋              │
+              └──────────────────────────┘
+```
+
+---
+
+# 📌 Current Status Summary
+
+| Area                 | Status         |
+| -------------------- | -------------- |
+| Project Setup        | ✅ Complete     |
+| Landing Page         | ✅ Complete     |
+| Authentication       | ✅ Complete     |
+| Supabase Integration | ✅ Complete     |
+| PostgreSQL Database  | ✅ Complete     |
+| Row Level Security   | ✅ Complete     |
+| Protected Routes     | ✅ Complete     |
+| Dashboard Layout     | 🔄 In Progress |
+| Expense CRUD         | 🔄 In Progress |
+| Income Tracking      | 🔄 In Progress |
+| Categories           | 🔄 In Progress |
+| Budget Management    | 📋 Planned     |
+| Analytics            | 📋 Planned     |
+| Smart Insights       | 📋 Planned     |
+| AI Features          | 📋 Planned     |
+| Receipt OCR          | 📋 Planned     |
+| Mobile App           | 📋 Future      |
+
+---
+
+# 👨‍💻 Development
+
+Smart Expenses Manager is currently being developed as a personal finance project with an emphasis on:
+
+* Modern frontend development
+* Type-safe application architecture
+* Secure user authentication
+* Relational database design
+* Responsive UI/UX
+* Financial data visualization
+* Future intelligent financial features
+
+The project is continuously evolving as new functionality is implemented and tested.
+
+---
+
+# 📄 License
+
+This project is currently intended for educational and development purposes.
+
+A formal open-source license may be added in the future.
+
+---
+
+# ⭐ Project Vision
+
+Smart Expenses Manager is not intended to be just another expense logging application.
+
+The goal is to build a tool that helps users move from:
+
+**Recording expenses**
+
+↓
+
+**Understanding spending**
+
+↓
+
+**Controlling budgets**
+
+↓
+
+**Improving financial habits**
+
+↓
+
+**Making better financial decisions**
+
+> **Track your money. Understand your habits. Build your future.**
