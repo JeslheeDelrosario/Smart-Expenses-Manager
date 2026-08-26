@@ -68,7 +68,7 @@ function DashboardPreview() {
             style={{ background: c.success }}
           />
           <span className="ml-3 text-xs" style={{ color: c.textFaint }}>
-            app.smartexpenses.com/dashboard
+            app.simpan.com/dashboard
           </span>
         </div>
 

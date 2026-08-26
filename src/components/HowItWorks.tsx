@@ -6,55 +6,81 @@ const STEPS = [
   {
     n: "01",
     title: "Track",
-    desc: "Record your income and expenses in seconds.",
+    desc: "Record your income and expenses effortlessly in seconds.",
   },
   {
     n: "02",
     title: "Understand",
-    desc: "See patterns through visual analytics.",
+    desc: "Uncover spending patterns through clear, visual analytics.",
   },
-  { n: "03", title: "Improve", desc: "Set budgets and reach your goals." },
-];
+  {
+    n: "03",
+    title: "Improve",
+    desc: "Set smart budgets and comfortably reach your financial goals.",
+  },
+] as const;
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="py-28" style={{ background: c.bg }}>
-      <div className="container mx-auto px-6">
-        <h2
-          className="text-center text-3xl md:text-4xl font-semibold mb-16"
-          style={{ color: c.text, letterSpacing: "-0.02em" }}
-        >
-          From spending to smarter decisions
-        </h2>
+    <section
+      id="how-it-works"
+      className="py-24 md:py-32"
+      style={{ background: c.bg }}
+    >
+      <div className="container mx-auto px-6 max-w-6xl">
+        <header className="max-w-2xl mx-auto text-center mb-16 md:mb-20">
+          <h2
+            className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+            style={{ color: c.text }}
+          >
+            From spending to smarter decisions
+          </h2>
+          <p className="text-base sm:text-lg" style={{ color: c.textMuted }}>
+            Take control of your money with a simple three-step habit.
+          </p>
+        </header>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 relative">
           {STEPS.map((step, i) => (
             <motion.div
               key={step.n}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: i * 0.15 }}
-              className="relative text-center"
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: i * 0.12 }}
+              className="group relative flex flex-col items-center text-center p-6 rounded-2xl transition-colors"
             >
-              <span
-                className="text-5xl font-semibold block mb-4"
-                style={{ color: c.border, fontFamily: "monospace" }}
+              {/* Step Badge */}
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center font-mono text-xl font-bold mb-6 border transition-transform group-hover:-translate-y-1"
+                style={{
+                  color: c.text,
+                  backgroundColor: c.bg,
+                  borderColor: c.border,
+                }}
               >
                 {step.n}
-              </span>
+              </div>
+
+              {/* Text Content */}
               <h3
-                className="text-lg font-semibold mb-2"
+                className="text-xl font-semibold mb-2 tracking-tight"
                 style={{ color: c.text }}
               >
                 {step.title}
               </h3>
-              <p className="text-sm" style={{ color: c.textMuted }}>
+              <p
+                className="text-sm leading-relaxed max-w-xs"
+                style={{ color: c.textMuted }}
+              >
                 {step.desc}
               </p>
+
+              {/* Connecting Line (Desktop) */}
               {i < STEPS.length - 1 && (
                 <div
-                  className="hidden md:block absolute top-6 left-[calc(100%+0.5rem)] w-[calc(100%-3rem)] h-px"
+                  aria-hidden="true"
+                  className="hidden md:block absolute top-13 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-[1px] -z-0"
                   style={{ background: c.border }}
                 />
               )}

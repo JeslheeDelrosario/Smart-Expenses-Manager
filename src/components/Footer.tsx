@@ -16,11 +16,11 @@ function Footer() {
             ◈
           </span>
           <span className="text-sm font-medium" style={{ color: c.text }}>
-            Smart Expenses
+            Simpan
           </span>
         </div>
         <p className="text-xs" style={{ color: c.textFaint }}>
-          © {new Date().getFullYear()} Smart Expenses. All rights reserved.
+          © {new Date().getFullYear()} Simpan. All rights reserved.
         </p>
       </div>
     </footer>

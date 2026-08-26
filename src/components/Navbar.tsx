@@ -77,7 +77,7 @@ function Navbar() {
         <button
           onClick={() => handleScroll("#home")}
           className="group flex items-center gap-2.5 shrink-0"
-          aria-label="Smart Expenses home"
+          aria-label="Simpan"
         >
           <motion.span
             whileHover={{ rotate: 90, scale: 1.05 }}
@@ -102,7 +102,7 @@ function Navbar() {
             className="hidden sm:block text-sm font-semibold tracking-tight"
             style={{ color: c.text }}
           >
-            Smart Expenses
+            Simpan
           </span>
         </button>
 
