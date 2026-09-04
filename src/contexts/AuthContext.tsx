@@ -1,3 +1,4 @@
+// src\contexts\AuthContext.tsx
 import {
   createContext,
   useContext,
@@ -116,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     // Fixed redirect — never take this from user input
-    const redirectTo = `${window.location.origin}/dashboard`;
+    const redirectTo = `${window.location.origin}/auth/callback`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
