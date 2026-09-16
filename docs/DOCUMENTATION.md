@@ -49,6 +49,8 @@ src/
 │   └── AuthContext.tsx      # Global auth state (user, session, signIn, signUp, signOut)
 │
 ├── components/
+│   ├── AppLayout.tsx        # Shared authenticated application shell and navigation
+│   ├── ErrorBoundary.tsx    # Fallback UI for unexpected rendering errors
 │   ├── ProtectedRoute.tsx   # Redirects unauthenticated users to /login
 │   └── ShapeLandingHero.tsx # Animated geometric hero for the landing page
 │
@@ -66,6 +68,9 @@ src/
 ├── services/
 │   ├── expenses.ts          # Supabase CRUD helpers for the expenses table
 │   └── auth.ts              # Auth service helpers
+│
+├── types/
+│   └── financial.ts          # Shared expense service types
 │
 └── lib/
     ├── supabase.ts          # Supabase client instance

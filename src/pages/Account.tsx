@@ -3,12 +3,9 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Menu,
-  LayoutDashboard,
   Wallet,
   PieChart,
   Receipt,
-  Settings,
-  LogOut,
   Calendar,
   CreditCard,
   Edit,
@@ -17,11 +14,10 @@ import {
   BadgeCheck,
   TrendingUp,
   Trash2,
-  ArrowUpRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
 import { supabase } from "../lib/supabase";
+import AppLayout, { MobileMenuButton } from "../components/AppLayout";
 
 // Types
 interface UserProfile {
@@ -34,35 +30,15 @@ interface UserProfile {
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("account");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate("/login");
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
   const [stats, setStats] = useState({
     totalTransactions: 0,
     totalSpent: 0,
     totalIncome: 0,
     categories: 0,
   });
-
-  const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { id: "transactions", label: "Transactions", icon: Receipt, path: "/transactions" },
-    { id: "budgets", label: "Budgets", icon: PieChart, path: "/budgets" },
-    { id: "income", label: "Income", icon: ArrowUpRight, path: "/income" },
-    { id: "account", label: "Account", icon: Wallet, path: "/account" },
-    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
-  ];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -150,58 +126,7 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#1e293b] border-r border-[#4b5563] flex flex-col transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-      >
-        <div className="p-6 border-b border-[#4b5563]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#818cf8] rounded-xl flex items-center justify-center shadow-lg shadow-[#818cf8]/25">
-              <Wallet className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">ExpenseTracker</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveNav(item.id);
-                navigate(item.path);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeNav === item.id
-                  ? "bg-[#818cf8] text-white shadow-lg shadow-[#818cf8]/25"
-                  : "text-gray-400 hover:bg-[#334155] hover:text-white"
-                }`}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-[#4b5563]">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all duration-200"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
-        </div>
-      </aside>
+    <AppLayout>
 
       {/* Main Content */}
       <main className="flex-1 min-w-0">
@@ -209,12 +134,11 @@ export default function AccountPage() {
         <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSidebarOpen(true)}
+              <MobileMenuButton
                 className="lg:hidden p-2 text-gray-400 hover:text-white"
               >
                 <Menu className="w-6 h-6" />
-              </button>
+              </MobileMenuButton>
               <h1 className="text-2xl font-bold text-white">My Account</h1>
             </div>
           </div>
@@ -405,6 +329,6 @@ export default function AccountPage() {
           )}
         </div>
       </main>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,24 +1,7 @@
 import { supabase } from "../lib/supabase";
+import type { CreateExpenseData, Expense, UpdateExpenseData } from "../types";
 
-export interface Expense {
-  id: string;
-  user_id: string;
-  amount: number;
-  description: string;
-  category: string;
-  date: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface CreateExpenseData {
-  amount: number;
-  description: string;
-  category: string;
-  date?: string;
-}
-
-export interface UpdateExpenseData extends Partial<CreateExpenseData> {}
+export type { CreateExpenseData, Expense, UpdateExpenseData } from "../types";
 
 // Get all expenses for the current user
 export async function getExpenses() {

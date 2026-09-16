@@ -9,11 +9,6 @@ import {
   X,
   Edit,
   Trash2,
-  LayoutDashboard,
-  Wallet,
-  PieChart,
-  Settings,
-  LogOut,
   Calendar,
   ArrowDownRight,
   ArrowUpRight,
@@ -22,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useToast } from "../components/useToast";
 import ToastContainer from "../components/ToastContainer";
+import AppLayout, { MobileMenuButton } from "../components/AppLayout";
 
 // Types
 interface Transaction {
@@ -43,8 +39,6 @@ interface Category {
 
 export default function TransactionsPage() {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("transactions");
 
   const [searchQuery, setSearchQuery] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -86,15 +80,6 @@ export default function TransactionsPage() {
   const getRawAmount = (formattedAmount: string) => {
     return parseFloat(formattedAmount.replace(/,/g, ''));
   };
-
-  const navItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-    { id: "transactions", label: "Transactions", icon: Receipt, path: "/transactions" },
-    { id: "budgets", label: "Budgets", icon: PieChart, path: "/budgets" },
-    { id: "income", label: "Income", icon: ArrowUpRight, path: "/income" },
-    { id: "account", label: "Account", icon: Wallet, path: "/account" },
-    { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
-  ];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -297,11 +282,6 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
-
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -315,58 +295,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] flex">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#1e293b] border-r border-[#4b5563] flex flex-col transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-      >
-        <div className="p-6 border-b border-[#4b5563]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#818cf8] rounded-xl flex items-center justify-center shadow-lg shadow-[#818cf8]/25">
-              <Wallet className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">ExpenseTracker</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-2">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveNav(item.id);
-                navigate(item.path);
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeNav === item.id
-                  ? "bg-[#818cf8] text-white shadow-lg shadow-[#818cf8]/25"
-                  : "text-gray-400 hover:bg-[#334155] hover:text-white"
-                }`}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-[#4b5563]">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-red-400/10 transition-all duration-200"
-          >
-            <LogOut className="w-5 h-5" />
-            Logout
-          </button>
-        </div>
-      </aside>
+    <AppLayout>
 
       {/* Main Content */}
       <main className="flex-1 min-w-0">
@@ -374,12 +303,11 @@ export default function TransactionsPage() {
         <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-3.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <button
-                onClick={() => setSidebarOpen(true)}
+              <MobileMenuButton
                 className="lg:hidden p-2 text-gray-400 hover:text-white"
               >
                 <Menu className="w-6 h-6" />
-              </button>
+              </MobileMenuButton>
               <div>
                 <h1 className="text-2xl font-bold text-white">Transactions</h1>
                 <p className="text-gray-400 mt-1">Current Balance: <span className={`font-semibold ${currentBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>{formatCurrency(currentBalance)}</span></p>
@@ -663,6 +591,6 @@ export default function TransactionsPage() {
       )}
 
       <ToastContainer toasts={toasts} dismiss={dismiss} />
-    </div>
+    </AppLayout>
   );
 }

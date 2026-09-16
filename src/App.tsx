@@ -14,13 +14,15 @@ import IncomePage from "./pages/Income";
 import BudgetsPage from "./pages/Budgets";
 import AccountPage from "./pages/Account";
 import SettingsPage from "./pages/Settings";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
+        <ErrorBoundary>
+          <ScrollToTop />
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
@@ -76,7 +78,8 @@ function App() {
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          </Routes>
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   );
