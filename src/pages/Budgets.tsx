@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useToast } from "../components/useToast";
+import ToastContainer from "../components/ToastContainer";
 
 // Types
 interface Category {
@@ -34,11 +36,14 @@ export default function BudgetsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("budgets");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const { toasts, toast, promiseToast, dismiss } = useToast();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -107,32 +112,33 @@ export default function BudgetsPage() {
     const fetchCategories = async () => {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log("Current user in Budgets:", user);
-        console.log("Auth error:", authError);
         
-        if (!user) {
+        if (!user || authError) {
           navigate("/login");
           return;
         }
 
-        // Get categories
-        const { data: cats, error: catsError } = await supabase
-          .from("categories")
-          .select("*")
-          .eq("user_id", user.id);
+        // Run both queries in parallel to reduce loading time
+        const [categoriesResult, expensesResult] = await Promise.all([
+          // Get categories
+          supabase
+            .from("categories")
+            .select("*")
+            .eq("user_id", user.id),
+          
+          // Calculate spent for each category
+          supabase
+            .from("expenses")
+            .select("*")
+            .eq("user_id", user.id)
+            .lt("amount", 0) // only expenses (negative amounts)
+        ]);
+
+        const { data: cats, error: catsError } = categoriesResult;
+        const { data: expenses, error: expensesError } = expensesResult;
           
         if (catsError) throw catsError;
-        console.log("Fetched categories:", cats);
-      
-        // Calculate spent for each category
-        const { data: expenses, error: expensesError } = await supabase
-          .from("expenses")
-          .select("*")
-          .eq("user_id", user.id)
-          .lt("amount", 0); // only expenses (negative amounts)
-          
         if (expensesError) throw expensesError;
-        console.log("Fetched expenses:", expenses);
 
         const enhancedCategories = cats?.map(cat => {
           const categoryExpenses = expenses?.filter(e => e.category === cat.name) || [];
@@ -153,18 +159,23 @@ export default function BudgetsPage() {
         setTotalSpent(totalSpentAmt);
       } catch (error) {
         console.error("Error fetching categories:", error);
-        alert("Failed to load data. Check console for details.");
+        toast("Failed to load budgets.", "error");
       } finally {
         setLoading(false);
       }
     };
 
     fetchCategories();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const refreshCategories = async (userId: string) => {
-    const { data: cats } = await supabase.from("categories").select("*").eq("user_id", userId);
-    const { data: expenses } = await supabase.from("expenses").select("*").eq("user_id", userId).lt("amount", 0);
+    // Run both queries in parallel for faster refresh
+    const [categoriesResult, expensesResult] = await Promise.all([
+      supabase.from("categories").select("*").eq("user_id", userId),
+      supabase.from("expenses").select("*").eq("user_id", userId).lt("amount", 0)
+    ]);
+    const { data: cats } = categoriesResult;
+    const { data: expenses } = expensesResult;
 
     const enhanced = (cats || []).map(cat => {
       const spent = (expenses || []).filter(e => e.category === cat.name).reduce((sum, e) => sum + Math.abs(e.amount), 0);
@@ -180,9 +191,7 @@ export default function BudgetsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      console.log("User in handleSubmit:", user);
-      console.log("Auth error:", authError);
+      const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
         navigate("/login");
@@ -191,56 +200,84 @@ export default function BudgetsPage() {
 
       // Validate form data
       if (!formData.name.trim()) {
-        alert("Please enter a category name");
+        toast("Please enter a category name.", "warning");
         return;
       }
       const budgetNum = getRawBudget(formData.budget);
             if (isNaN(budgetNum) || budgetNum <= 0) {
-              alert("Please enter a valid budget amount");
+              toast("Please enter a valid budget amount.", "warning");
               return;
             }
 
-      if (editingCategory) {
-        // Update existing category
-        const { error: updateError } = await supabase
-          .from("categories")
-          .update({ 
-            name: formData.name, 
-            color: formData.color, 
-            budget: budgetNum 
-          })
-          .eq("id", editingCategory.id)
-          .eq("user_id", user.id);
-          
-        if (updateError) throw updateError;
-      } else {
-        // Add new category
-        const { error: insertError } = await supabase.from("categories").insert({
-          user_id: user.id,
-          name: formData.name,
-          color: formData.color,
-          budget: budgetNum,
-        });
-        
-        if (insertError) throw insertError;
-      }
+      const isEditing = !!editingCategory;
 
-      setShowAddModal(false);
-      setEditingCategory(null);
-      setFormData({ name: "", color: "#f59e0b", budget: "" });
-      await refreshCategories(user.id);
+      const saveOperation = async () => {
+        if (isEditing) {
+          const { error: updateError } = await supabase
+            .from("categories")
+            .update({ name: formData.name, color: formData.color, budget: budgetNum })
+            .eq("id", editingCategory.id)
+            .eq("user_id", user.id);
+          if (updateError) throw updateError;
+        } else {
+          const { error: insertError } = await supabase.from("categories").insert({
+            user_id: user.id,
+            name: formData.name,
+            color: formData.color,
+            budget: budgetNum,
+          });
+          if (insertError) throw insertError;
+        }
+        await refreshCategories(user.id);
+      };
+
+      try {
+        await promiseToast(saveOperation(), {
+          loading: isEditing ? "Updating category..." : "Adding category...",
+          success: isEditing ? "Category updated." : "Category added.",
+          error: isEditing ? "Failed to update category." : "Failed to add category.",
+        });
+        setShowAddModal(false);
+        setEditingCategory(null);
+        setFormData({ name: "", color: "#f59e0b", budget: "" });
+      } catch {
+        // error already shown by promiseToast
+      }
     } catch (error) {
-      console.error("Error saving category:", error);
-      alert("Failed to save category. Check console for details.");
+      console.error("Error in handleSubmit:", error);
     }
   };
 
-  // Delete category
-  const handleDelete = async (id: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase.from("categories").delete().eq("id", id);
-    await refreshCategories(user.id);
+  // Open delete confirmation modal
+  const confirmDelete = (id: string) => {
+    setCategoryToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  // Execute delete after confirmation
+  const executeDelete = async () => {
+    if (!categoryToDelete) return;
+    
+    const deleteOperation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { error } = await supabase.from("categories").delete().eq("id", categoryToDelete);
+      if (error) throw error;
+      await refreshCategories(user.id);
+    };
+
+    try {
+      await promiseToast(deleteOperation(), {
+        loading: "Deleting category...",
+        success: "Category deleted.",
+        error: "Failed to delete category.",
+      });
+    } catch {
+      // error already shown by promiseToast
+    } finally {
+      setShowDeleteModal(false);
+      setCategoryToDelete(null);
+    }
   };
 
   const handleLogout = async () => {
@@ -477,7 +514,7 @@ export default function BudgetsPage() {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(category.id)}
+                          onClick={() => confirmDelete(category.id)}
                           className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -627,6 +664,39 @@ export default function BudgetsPage() {
                 </button>
               </div>
             </form>
+          </motion.div>
+        </div>
+      )}
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-[#4b5563]">
+              <h3 className="text-xl font-bold text-white">Delete Budget</h3>
+              <p className="text-gray-400 mt-2">Are you sure you want to delete this budget category? This action cannot be undone.</p>
+            </div>
+            <div className="p-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}
+                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </motion.div>
         </div>
       )}

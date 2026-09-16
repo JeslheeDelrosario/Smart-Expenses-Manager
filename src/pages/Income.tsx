@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Menu, Plus, ArrowUpRight, X, LayoutDashboard, Receipt, PieChart, Wallet, Settings, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "../lib/supabase";
+import { useToast } from "../components/useToast";
+import ToastContainer from "../components/ToastContainer";
 import { useNavigate } from "react-router-dom";
 
 // Interface for income entries (matches your expenses table structure)
@@ -28,7 +30,11 @@ export default function IncomePage() {
   const [currentBalance, setCurrentBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [incomeToDelete, setIncomeToDelete] = useState<string | null>(null);
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toasts, toast, promiseToast, dismiss } = useToast();
 
   // Logout function (matches all other pages)
   const handleLogout = async () => {
@@ -90,67 +96,80 @@ export default function IncomePage() {
   };
 
   // Fetch all income data from Supabase
-  useEffect(() => {
-    const fetchIncomeData = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          navigate("/login");
-          return;
-        }
+  const fetchData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/login");
+        return;
+      }
 
+      // Run both queries in parallel to reduce loading time
+      const [incomeResult, transactionsResult] = await Promise.all([
         // Get all income entries (filtered by category = "Income")
-        const { data: allIncome, error: incomeError } = await supabase
+        supabase
           .from("expenses")
           .select("*")
           .eq("user_id", user.id)
           .eq("category", "Income")
-          .order("date", { ascending: false });
-
-        if (incomeError) throw incomeError;
+          .order("date", { ascending: false }),
         
-        // Separate pending and received income
-        const pending = allIncome?.filter(item => item.is_pending === true) || [];
-        const received = allIncome?.filter(item => item.is_pending === false) || [];
-        
-        setReceivedIncomes(received);
-        setPendingIncomes(pending);
-
         // Calculate current balance from all transactions (only non-pending)
-        const { data: allTransactions, error: balanceError } = await supabase
+        supabase
           .from("expenses")
           .select("amount, is_pending")
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+      ]);
 
-        if (balanceError) throw balanceError;
-        const balance = allTransactions
-          ?.filter(t => !t.is_pending) // Only include transactions you've actually received/paid
-          .reduce((sum, t) => sum + t.amount, 0) || 0;
-        setCurrentBalance(balance);
+      const { data: allIncome, error: incomeError } = incomeResult;
+      const { data: allTransactions, error: balanceError } = transactionsResult;
 
-      } catch (error) {
-        console.error("Error fetching income data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      if (incomeError) throw incomeError;
+      if (balanceError) throw balanceError;
+      
+      // Separate pending and received income
+      const pending = allIncome?.filter(item => item.is_pending === true) || [];
+      const received = allIncome?.filter(item => item.is_pending === false) || [];
+      
+      setReceivedIncomes(received);
+      setPendingIncomes(pending);
 
-    fetchIncomeData();
+      // Calculate balance
+      const balance = allTransactions
+        ?.filter(t => !t.is_pending) // Only include transactions you've actually received/paid
+        .reduce((sum, t) => sum + t.amount, 0) || 0;
+      setCurrentBalance(balance);
+
+    } catch (error) {
+      console.error("Error fetching income data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [navigate]);
 
   // Mark pending income as received
   const markAsReceived = async (incomeId: string) => {
-    try {
+    const operation = async () => {
       const { error } = await supabase
         .from("expenses")
         .update({ is_pending: false })
         .eq("id", incomeId);
-
       if (error) throw error;
-      window.location.reload();
-    } catch (error) {
-      console.error("Error marking income as received:", error);
-      alert("Failed to update income status");
+      await fetchData();
+    };
+
+    try {
+      await promiseToast(operation(), {
+        loading: "Marking as received...",
+        success: "Income marked as received.",
+        error: "Failed to update income status.",
+      });
+    } catch {
+      // error already shown by promiseToast
     }
   };
 
@@ -169,36 +188,47 @@ export default function IncomePage() {
     setShowAddModal(true);
   };
 
-  // Handle delete income
-  const handleDelete = async (incomeId: string) => {
-    if (!window.confirm("Are you sure you want to delete this income entry?")) {
-      return;
-    }
-    
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+  // Open delete confirmation modal
+  const confirmDelete = (id: string) => {
+    setIncomeToDelete(id);
+    setShowDeleteModal(true);
+  };
 
+  // Execute delete after confirmation
+  const executeDelete = async () => {
+    if (!incomeToDelete) return;
+    
+    const deleteOperation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { navigate("/login"); return; }
       const { error } = await supabase
         .from("expenses")
         .delete()
-        .eq("id", incomeId)
+        .eq("id", incomeToDelete)
         .eq("user_id", user.id);
-
       if (error) throw error;
-      window.location.reload();
-    } catch (error) {
-      console.error("Error deleting income:", error);
-      alert("Failed to delete income. Check console for details.");
+      await fetchData();
+    };
+
+    try {
+      await promiseToast(deleteOperation(), {
+        loading: "Deleting income...",
+        success: "Income deleted.",
+        error: "Failed to delete income.",
+      });
+    } catch {
+      // error already shown by promiseToast
+    } finally {
+      setShowDeleteModal(false);
+      setIncomeToDelete(null);
     }
   };
 
   // Handle form submission for new or edited income
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent duplicate submissions
+    setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -208,54 +238,63 @@ export default function IncomePage() {
 
       // Validate form
       if (!formData.source.trim()) {
-        alert("Please enter an income source");
+        toast("Please enter an income source.", "warning");
         return;
       }
       const amount = getRawAmount(formData.amount);
       if (isNaN(amount) || amount <= 0) {
-        alert("Please enter a valid amount");
+        toast("Please enter a valid amount.", "warning");
         return;
       }
 
-      if (editingIncome) {
-          // Update existing income
+      const isEditing = !!editingIncome;
+
+      const saveOperation = async () => {
+        if (isEditing) {
           const { error } = await supabase
             .from("expenses")
             .update({
               description: formData.source,
-              amount: amount,
+              amount,
               date: formData.date,
               is_monthly: formData.is_monthly,
               is_pending: formData.is_pending,
             })
             .eq("id", editingIncome.id)
             .eq("user_id", user.id);
-
           if (error) throw error;
         } else {
-          // Insert new income
           const { error } = await supabase.from("expenses").insert({
             user_id: user.id,
             description: formData.source,
-            amount: amount,
+            amount,
             category: "Income",
             category_color: "#22c55e",
             date: formData.date,
             is_monthly: formData.is_monthly,
             is_pending: formData.is_pending,
           });
-
           if (error) throw error;
         }
+        await fetchData();
+      };
 
-      // Close modal and reset
-      setShowAddModal(false);
-      setEditingIncome(null);
-      resetForm();
-      window.location.reload();
+      try {
+        await promiseToast(saveOperation(), {
+          loading: isEditing ? "Updating income..." : "Adding income...",
+          success: isEditing ? "Income updated." : "Income added.",
+          error: isEditing ? "Failed to update income." : "Failed to add income.",
+        });
+        setShowAddModal(false);
+        setEditingIncome(null);
+        resetForm();
+      } catch {
+        // error already shown by promiseToast
+      }
     } catch (error) {
-      console.error("Error saving income:", error);
-      alert("Failed to save income. Check console for details.");
+      console.error("Error in handleSubmit:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -433,7 +472,7 @@ export default function IncomePage() {
                                   </svg>
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(income.id)}
+                                  onClick={() => confirmDelete(income.id)}
                                   className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                                   title="Delete"
                                 >
@@ -496,7 +535,7 @@ export default function IncomePage() {
                                   </svg>
                                 </button>
                                 <button
-                                  onClick={() => handleDelete(income.id)}
+                                  onClick={() => confirmDelete(income.id)}
                                   className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                                   title="Delete"
                                 >
@@ -604,9 +643,20 @@ export default function IncomePage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#818cf8] flex items-center justify-center gap-2"
                   >
-                    Add Income
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z" />
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
+                      editingIncome ? "Update Income" : "Add Income"
+                    )}
                   </button>
                 </div>
               </form>
@@ -616,6 +666,39 @@ export default function IncomePage() {
           </div>
         </main>
       </div>
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-[#4b5563]">
+              <h3 className="text-xl font-bold text-white">Delete Income</h3>
+              <p className="text-gray-400 mt-2">Are you sure you want to delete this income entry? This action cannot be undone.</p>
+            </div>
+            <div className="p-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteModal(false); setIncomeToDelete(null); }}
+                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

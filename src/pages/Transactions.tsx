@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useToast } from "../components/useToast";
+import ToastContainer from "../components/ToastContainer";
 
 // Types
 interface Transaction {
@@ -43,12 +45,17 @@ export default function TransactionsPage() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("transactions");
-  const [showAddModal, setShowAddModal] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { toasts, toast, promiseToast, dismiss } = useToast();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -101,36 +108,39 @@ export default function TransactionsPage() {
     const fetchData = async () => {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log("Current user:", user);
-        console.log("Auth error:", authError);
         
-        if (!user) {
-          console.log("No user found, redirecting to login");
+        if (!user || authError) {
           navigate("/login");
           return;
         }
 
-        // Fetch categories
-        const { data: cats, error: catsError } = await supabase
-          .from("categories")
-          .select("id, name, color")
-          .eq("user_id", user.id);
+        // Run both queries in parallel to reduce loading time
+        const [categoriesResult, transactionsResult] = await Promise.all([
+          // Fetch categories
+          supabase
+            .from("categories")
+            .select("id, name, color")
+            .eq("user_id", user.id),
+          
+          // Fetch transactions
+          supabase
+            .from("expenses")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("date", { ascending: false })
+        ]);
+
+        const { data: cats, error: catsError } = categoriesResult;
+        const { data: trans, error: transError } = transactionsResult;
           
         if (catsError) throw catsError;
-        setCategories(cats || []);
-
-        // Fetch transactions
-        const { data: trans, error: transError } = await supabase
-          .from("expenses")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("date", { ascending: false });
-          
         if (transError) throw transError;
+        
+        setCategories(cats || []);
         setTransactions(trans || []);
       } catch (error) {
         console.error("Error fetching data:", error);
-        alert("Failed to load data. Check console for details.");
+        toast("Failed to load transactions.", "error");
       } finally {
         setLoading(false);
       }
@@ -150,28 +160,33 @@ export default function TransactionsPage() {
   // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return; // Prevent duplicate submissions
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       navigate("/login");
       return;
     }
 
+    setIsSubmitting(true);
+
     const selectedCategory = categories.find(c => c.id === formData.category_id);
     if (!selectedCategory) {
-      alert("Please select a category");
+      toast("Please select a category.", "warning");
       return;
     }
 
     const amount = getRawAmount(formData.amount);
        if (isNaN(amount) || amount <= 0) {
-         alert("Please enter a valid amount");
+         toast("Please enter a valid amount.", "warning");
          return;
        }
        const finalAmount = formData.is_income ? amount : -amount;
 
-    try {
-      if (editingTransaction) {
-        // Update existing transaction
+    const isEditing = !!editingTransaction;
+
+    const saveOperation = async () => {
+      if (isEditing) {
         const { error: updateError } = await supabase
           .from("expenses")
           .update({
@@ -183,10 +198,8 @@ export default function TransactionsPage() {
           })
           .eq("id", editingTransaction.id)
           .eq("user_id", user.id);
-          
         if (updateError) throw updateError;
       } else {
-        // Add new transaction
         const { error: insertError } = await supabase.from("expenses").insert({
           user_id: user.id,
           description: formData.description,
@@ -195,27 +208,31 @@ export default function TransactionsPage() {
           category_color: selectedCategory.color,
           date: formData.date,
         });
-        
         if (insertError) throw insertError;
       }
 
-      // Refresh data
       const { data: trans, error: fetchError } = await supabase
         .from("expenses")
         .select("*")
         .eq("user_id", user.id)
         .order("date", { ascending: false });
-        
       if (fetchError) throw fetchError;
       setTransactions(trans || []);
+    };
 
-      // Reset form
+    try {
+      await promiseToast(saveOperation(), {
+        loading: isEditing ? "Updating transaction..." : "Adding transaction...",
+        success: isEditing ? "Transaction updated." : "Transaction added.",
+        error: isEditing ? "Failed to update transaction." : "Failed to add transaction.",
+      });
       resetForm();
       setShowAddModal(false);
       setEditingTransaction(null);
-    } catch (error) {
-      console.error("Error saving transaction:", error);
-      alert("Failed to save transaction. Check console for details.");
+    } catch {
+      // error already shown by promiseToast
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -242,17 +259,41 @@ export default function TransactionsPage() {
     setShowAddModal(true);
   };
 
-  // Delete transaction
-  const handleDelete = async (id: string) => {
-    await supabase.from("expenses").delete().eq("id", id);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: trans } = await supabase
-        .from("expenses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false });
-      setTransactions(trans || []);
+  // Open delete confirmation modal
+  const confirmDelete = (id: string) => {
+    setTransactionToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  // Execute delete after confirmation
+  const executeDelete = async () => {
+    if (!transactionToDelete) return;
+    
+    const deleteOperation = async () => {
+      const { error } = await supabase.from("expenses").delete().eq("id", transactionToDelete);
+      if (error) throw error;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: trans } = await supabase
+          .from("expenses")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false });
+        setTransactions(trans || []);
+      }
+    };
+
+    try {
+      await promiseToast(deleteOperation(), {
+        loading: "Deleting transaction...",
+        success: "Transaction deleted.",
+        error: "Failed to delete transaction.",
+      });
+    } catch {
+      // error already shown by promiseToast
+    } finally {
+      setShowDeleteModal(false);
+      setTransactionToDelete(null);
     }
   };
 
@@ -448,7 +489,7 @@ export default function TransactionsPage() {
                               <Edit className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleDelete(transaction.id)}
+                              onClick={() => confirmDelete(transaction.id)}
                               className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -567,15 +608,61 @@ export default function TransactionsPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#818cf8] flex items-center justify-center gap-2"
                 >
-                  {editingTransaction ? "Update" : "Add"} Transaction
+                  {isSubmitting ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    editingTransaction ? "Update" : "Add"
+                  )} Transaction
                 </button>
               </div>
             </form>
           </motion.div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
+          >
+            <div className="p-6 border-b border-[#4b5563]">
+              <h3 className="text-xl font-bold text-white">Delete Transaction</h3>
+              <p className="text-gray-400 mt-2">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+            </div>
+            <div className="p-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setShowDeleteModal(false); setTransactionToDelete(null); }}
+                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>
   );
 }

@@ -61,6 +61,18 @@ export default function DashboardPage() {
   const totalMonthlyIncome = monthlyRegularIncome + oneTimeIncomeThisMonth;
   const monthlyBudget = totalMonthlyIncome - monthlyExpenses;
 
+  // State for notifications
+  const [notifications, setNotifications] = useState<{id: string, message: string, read: boolean, date: string}[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP",
+    }).format(amount);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const {
@@ -76,13 +88,26 @@ export default function DashboardPage() {
         .toISOString()
         .split("T")[0];
 
-      const { data: allExpenses } = await supabase
-        .from("expenses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false });
+      // Run both queries in parallel to reduce loading time
+      const [expensesResult, categoriesResult] = await Promise.all([
+        // Fetch all expenses first
+        supabase
+          .from("expenses")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false }),
+        
+        // Fetch categories in parallel
+        supabase
+          .from("categories")
+          .select("*")
+          .eq("user_id", user.id)
+      ]);
 
+      const { data: allExpenses } = expensesResult;
+      const { data: cats } = categoriesResult;
       const expenses = allExpenses || [];
+
       // Calculate current balance: only include NON-PENDING transactions (exclude income you haven't received yet)
       const balance = expenses
         .filter((e) => !e.is_pending) // Only include transactions you've actually received/paid
@@ -116,11 +141,6 @@ export default function DashboardPage() {
 
       setRecentTransactions(expenses.slice(0, 5) as Transaction[]);
 
-      const { data: cats } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", user.id);
-
       const stats = (cats || [])
         .map((cat) => {
           const catExpenses = expenses.filter(
@@ -140,10 +160,181 @@ export default function DashboardPage() {
         .filter((c) => c.budget > 0);
 
       setCategoryStats(stats);
+
+      // Check for budget alerts to create notifications
+      const budgetAlerts: {id: string, message: string, read: boolean, date: string}[] = [];
+      stats.forEach(cat => {
+        if (cat.budget > 0 && cat.spent >= cat.budget * 0.8) {
+          const percentage = Math.round((cat.spent / cat.budget) * 100);
+          budgetAlerts.push({
+            id: `budget-${cat.name}-${Date.now()}`,
+            message: `${cat.name} budget is ${percentage}% used!`,
+            read: false,
+            date: new Date().toISOString()
+          });
+        }
+      });
+      
+      // Add pending income notifications
+      if (pending.length > 0) {
+        budgetAlerts.push({
+          id: `pending-${Date.now()}`,
+          message: `You have ${pending.length} pending income(s) totaling ${formatCurrency(upcomingTotal)}`,
+          read: false,
+          date: new Date().toISOString()
+        });
+      }
+      
+      // Only update notifications if there are new ones
+      if (budgetAlerts.length > 0) {
+        setNotifications(prev => {
+          // Avoid adding duplicate notifications
+          const existingIds = new Set(prev.map(n => n.id));
+          const newAlerts = budgetAlerts.filter(a => !existingIds.has(a.id));
+          return [...newAlerts, ...prev];
+        });
+      }
     };
 
     fetchData();
+
+    // Set up real-time subscription for new transactions
+    const setupRealtimeSubscription = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      // Listen for ALL changes across all tables: expenses, categories
+      // 1. First, listen to expenses (transactions) changes
+      const expensesSubscription = supabase
+        .channel('all-changes')
+        .on('postgres_changes', { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'expenses',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          const newEntry = payload.new as { amount: number; description: string; category: string };
+          const isIncome = newEntry.category === 'Income' || newEntry.amount > 0;
+          setNotifications(prev => [{
+            id: `new-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
+            message: isIncome
+              ? `New income added: ${newEntry.description} (${formatCurrency(newEntry.amount)})`
+              : `New expense added: ${newEntry.description}`,
+            read: false,
+            date: new Date().toISOString()
+          }, ...prev]);
+          fetchData();
+        })
+        .on('postgres_changes', { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'expenses',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          const updatedEntry = payload.new as { description: string; category: string; amount: number };
+          const isIncome = updatedEntry.category === 'Income' || updatedEntry.amount > 0;
+          setNotifications(prev => [{
+            id: `update-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
+            message: isIncome
+              ? `Income entry updated: ${updatedEntry.description}`
+              : `Transaction updated: ${updatedEntry.description}`,
+            read: false,
+            date: new Date().toISOString()
+          }, ...prev]);
+          fetchData();
+        })
+        .on('postgres_changes', { 
+          event: 'DELETE', 
+          schema: 'public', 
+          table: 'expenses',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          const deletedEntry = payload.old as { description: string; category: string; amount: number };
+          const isIncome = deletedEntry.category === 'Income' || deletedEntry.amount > 0;
+          setNotifications(prev => [{
+            id: `delete-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
+            message: isIncome
+              ? `Income entry deleted: ${deletedEntry.description}`
+              : `Transaction deleted: ${deletedEntry.description}`,
+            read: false,
+            date: new Date().toISOString()
+          }, ...prev]);
+          fetchData();
+        })
+        // 2. Listen to categories (budgets) table changes
+         .on('postgres_changes', { 
+           event: 'INSERT', 
+           schema: 'public', 
+           table: 'categories',
+           filter: `user_id=eq.${user.id}`
+         }, (payload) => {
+           const newCategory = payload.new as { name: string; budget: number };
+           setNotifications(prev => [{
+             id: `new-budget-${Date.now()}`,
+             message: `New budget created: ${newCategory.name} (${formatCurrency(newCategory.budget)})`,
+             read: false,
+             date: new Date().toISOString()
+           }, ...prev]);
+           fetchData();
+         })
+         .on('postgres_changes', { 
+           event: 'UPDATE', 
+           schema: 'public', 
+           table: 'categories',
+           filter: `user_id=eq.${user.id}`
+         }, (payload) => {
+           const updatedCategory = payload.new as { name: string };
+           setNotifications(prev => [{
+             id: `update-budget-${Date.now()}`,
+             message: `Budget updated: ${updatedCategory.name}`,
+             read: false,
+             date: new Date().toISOString()
+           }, ...prev]);
+           fetchData();
+         })
+         .on('postgres_changes', { 
+           event: 'DELETE', 
+           schema: 'public', 
+           table: 'categories',
+           filter: `user_id=eq.${user.id}`
+         }, (payload) => {
+           const deletedCategory = payload.old as { name: string };
+           setNotifications(prev => [{
+             id: `delete-budget-${Date.now()}`,
+             message: `Budget deleted: ${deletedCategory.name}`,
+             read: false,
+             date: new Date().toISOString()
+           }, ...prev]);
+           fetchData();
+         })
+         .subscribe();
+      
+      return expensesSubscription;
+    };
+    
+    let subscription: Awaited<ReturnType<typeof setupRealtimeSubscription>>;
+    setupRealtimeSubscription().then(sub => {
+      subscription = sub;
+    });
+
+    return () => {
+       if (subscription) {
+         subscription.unsubscribe();
+       }
+     };
   }, [navigate]);
+
+  // Mark notification as read
+  const markAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => 
+      n.id === id ? {...n, read: true} : n
+    ));
+  };
+
+  // Mark all as read
+  const markAllAsRead = () => {
+    setNotifications(prev => prev.map(n => ({...n, read: true})));
+  };
 
   const navItems = [
     {
@@ -167,13 +358,6 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/login");
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
   };
 
   const fadeInVariants = {
@@ -285,10 +469,68 @@ export default function DashboardPage() {
                   })}
                 </span>
               </div>
-              <button className="relative p-2.5 bg-[#1e293b] rounded-xl border border-[#4b5563] hover:bg-[#334155] transition-colors">
-                <Bell className="w-5 h-5 text-[#e2e8f0]" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#ef4444] rounded-full"></span>
-              </button>
+              {/* Notification Bell with Dropdown */}
+              <div className="relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative p-2.5 bg-[#1e293b] rounded-xl border border-[#4b5563] hover:bg-[#334155] transition-colors"
+                >
+                  <Bell className="w-5 h-5 text-[#e2e8f0]" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#ef4444] text-white text-xs flex items-center justify-center rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                {/* Notification Dropdown */}
+                {showNotifications && (
+                  <div className="absolute right-0 mt-2 w-80 bg-[#1e293b] border border-[#4b5563] rounded-xl shadow-2xl z-50 overflow-hidden">
+                    <div className="p-4 border-b border-[#4b5563] flex items-center justify-between">
+                      <h3 className="font-semibold text-white">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={markAllAsRead}
+                          className="text-xs text-[#818cf8] hover:text-[#6366f1]"
+                        >
+                          Mark all read
+                        </button>
+                      )}
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-gray-400">
+                          No new notifications
+                        </div>
+                      ) : (
+                        notifications.map((notification) => (
+                          <div 
+                            key={notification.id}
+                            onClick={() => markAsRead(notification.id)}
+                            className={`p-4 border-b border-[#334155] hover:bg-[#334155] cursor-pointer transition-colors ${
+                              !notification.read ? 'bg-[#273449]' : ''
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              {!notification.read && (
+                                <span className="w-2 h-2 bg-[#818cf8] rounded-full mt-1.5 shrink-0"></span>
+                              )}
+                              <div className="flex-1">
+                                <p className={`text-sm ${notification.read ? 'text-gray-400' : 'text-white'}`}>
+                                  {notification.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {new Date(notification.date).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

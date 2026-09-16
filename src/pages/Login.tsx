@@ -11,12 +11,13 @@ import {
   ArrowLeft,
   ShieldCheck,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { colors as c } from "../lib/theme";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signIn, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -25,6 +26,8 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  // Success message passed via navigate state (e.g., after a password reset)
+  const successMessage = (location.state as { message?: string } | null)?.message ?? "";
 
   useEffect(() => {
     if (user) {
@@ -461,7 +464,7 @@ function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={() => console.log("Navigate to forgot password")}
+                    onClick={() => navigate("/forgot-password")}
                     className="text-xs transition-colors"
                     style={{
                       color: c.primary,
@@ -547,8 +550,23 @@ function LoginPage() {
                 </div>
               </div>
 
-              {/* Error */}
+              {/* Success banner (e.g. after password reset) */}
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl border px-4 py-3 text-xs"
+                  style={{
+                    background: `${c.success}08`,
+                    borderColor: `${c.success}20`,
+                    color: c.success,
+                  }}
+                >
+                  {successMessage}
+                </motion.div>
+              )}
 
+              {/* Error */}
               {error && (
                 <motion.div
                   initial={{
