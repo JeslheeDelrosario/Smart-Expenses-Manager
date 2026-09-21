@@ -16,6 +16,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
+import { useCurrency } from "../hooks/useCurrency";
 
 interface Transaction {
   id: string;
@@ -62,14 +63,11 @@ export default function DashboardPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrency();
 
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {}); // Optional auth state listener
+
     const fetchData = async () => {
       const {
         data: { user },
@@ -192,132 +190,81 @@ export default function DashboardPage() {
       }
     };
 
-    fetchData();
+    // ---- Realtime subscription: created ONCE, outside fetchData ----
+    let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    // Set up real-time subscription for new transactions
-    const setupRealtimeSubscription = async () => {
+    const setupChannel = async () => {
+      if (channel) return;
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      
-      // Listen for ALL changes across all tables: expenses, categories
-      // 1. First, listen to expenses (transactions) changes
-      const expensesSubscription = supabase
-        .channel('all-changes')
-        .on('postgres_changes', { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'expenses',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          const newEntry = payload.new as { amount: number; description: string; category: string };
-          const isIncome = newEntry.category === 'Income' || newEntry.amount > 0;
-          setNotifications(prev => [{
-            id: `new-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
-            message: isIncome
-              ? `New income added: ${newEntry.description} (${formatCurrency(newEntry.amount)})`
-              : `New expense added: ${newEntry.description}`,
-            read: false,
-            date: new Date().toISOString()
-          }, ...prev]);
-          fetchData();
+
+      const channelName = `dashboard-changes-${user.id}`;
+
+      // ---- THE CRITICAL FIX: Remove any stale channels from the client registry ----
+      // supabase.channel(name) returns the EXISTING channel if one is registered,
+      // which is why .on() was failing - it was hitting an already-subscribed channel
+      const staleChannels = supabase
+        .getChannels()
+        .filter((c) => c.topic === `realtime:${channelName}`);
+      for (const c of staleChannels) {
+        await supabase.removeChannel(c);
+      }
+      // -----------------------------------------------------------------------------
+
+      // Create a fresh channel after cleaning up any stale ones
+      const newChannel = supabase.channel(channelName);
+
+      // Add ALL listeners before subscribing
+      newChannel
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'expenses', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const e = payload.new as { amount: number; description: string; category: string };
+          const isIncome = e.category === 'Income' || e.amount > 0;
+          setNotifications(prev => [{ id: `new-${isIncome ? 'income' : 'expense'}-${Date.now()}`, message: isIncome ? `New income added: ${e.description}` : `New expense added: ${e.description}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
         })
-        .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'expenses',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          const updatedEntry = payload.new as { description: string; category: string; amount: number };
-          const isIncome = updatedEntry.category === 'Income' || updatedEntry.amount > 0;
-          setNotifications(prev => [{
-            id: `update-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
-            message: isIncome
-              ? `Income entry updated: ${updatedEntry.description}`
-              : `Transaction updated: ${updatedEntry.description}`,
-            read: false,
-            date: new Date().toISOString()
-          }, ...prev]);
-          fetchData();
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'expenses', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const e = payload.new as { description: string; category: string; amount: number };
+          const isIncome = e.category === 'Income' || e.amount > 0;
+          setNotifications(prev => [{ id: `update-${isIncome ? 'income' : 'expense'}-${Date.now()}`, message: isIncome ? `Income updated: ${e.description}` : `Transaction updated: ${e.description}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
         })
-        .on('postgres_changes', { 
-          event: 'DELETE', 
-          schema: 'public', 
-          table: 'expenses',
-          filter: `user_id=eq.${user.id}`
-        }, (payload) => {
-          const deletedEntry = payload.old as { description: string; category: string; amount: number };
-          const isIncome = deletedEntry.category === 'Income' || deletedEntry.amount > 0;
-          setNotifications(prev => [{
-            id: `delete-${isIncome ? 'income' : 'expense'}-${Date.now()}`,
-            message: isIncome
-              ? `Income entry deleted: ${deletedEntry.description}`
-              : `Transaction deleted: ${deletedEntry.description}`,
-            read: false,
-            date: new Date().toISOString()
-          }, ...prev]);
-          fetchData();
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'expenses', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const e = payload.old as { description: string; category: string; amount: number };
+          const isIncome = e.category === 'Income' || e.amount > 0;
+          setNotifications(prev => [{ id: `delete-${isIncome ? 'income' : 'expense'}-${Date.now()}`, message: isIncome ? `Income deleted: ${e.description}` : `Transaction deleted: ${e.description}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
         })
-        // 2. Listen to categories (budgets) table changes
-         .on('postgres_changes', { 
-           event: 'INSERT', 
-           schema: 'public', 
-           table: 'categories',
-           filter: `user_id=eq.${user.id}`
-         }, (payload) => {
-           const newCategory = payload.new as { name: string; budget: number };
-           setNotifications(prev => [{
-             id: `new-budget-${Date.now()}`,
-             message: `New budget created: ${newCategory.name} (${formatCurrency(newCategory.budget)})`,
-             read: false,
-             date: new Date().toISOString()
-           }, ...prev]);
-           fetchData();
-         })
-         .on('postgres_changes', { 
-           event: 'UPDATE', 
-           schema: 'public', 
-           table: 'categories',
-           filter: `user_id=eq.${user.id}`
-         }, (payload) => {
-           const updatedCategory = payload.new as { name: string };
-           setNotifications(prev => [{
-             id: `update-budget-${Date.now()}`,
-             message: `Budget updated: ${updatedCategory.name}`,
-             read: false,
-             date: new Date().toISOString()
-           }, ...prev]);
-           fetchData();
-         })
-         .on('postgres_changes', { 
-           event: 'DELETE', 
-           schema: 'public', 
-           table: 'categories',
-           filter: `user_id=eq.${user.id}`
-         }, (payload) => {
-           const deletedCategory = payload.old as { name: string };
-           setNotifications(prev => [{
-             id: `delete-budget-${Date.now()}`,
-             message: `Budget deleted: ${deletedCategory.name}`,
-             read: false,
-             date: new Date().toISOString()
-           }, ...prev]);
-           fetchData();
-         })
-         .subscribe();
-      
-      return expensesSubscription;
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'categories', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const c = payload.new as { name: string; budget: number };
+          setNotifications(prev => [{ id: `new-budget-${Date.now()}`, message: `New budget created: ${c.name}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'categories', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const c = payload.new as { name: string };
+          setNotifications(prev => [{ id: `update-budget-${Date.now()}`, message: `Budget updated: ${c.name}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'categories', filter: `user_id=eq.${user.id}` }, (payload) => {
+          const c = payload.old as { name: string };
+          setNotifications(prev => [{ id: `delete-budget-${Date.now()}`, message: `Budget deleted: ${c.name}`, read: false, date: new Date().toISOString() }, ...prev]);
+          void fetchData();
+        });
+
+      // Subscribe only after all listeners are added
+      newChannel.subscribe();
+      channel = newChannel;
     };
-    
-    let subscription: Awaited<ReturnType<typeof setupRealtimeSubscription>>;
-    setupRealtimeSubscription().then(sub => {
-      subscription = sub;
-    });
+
+    void fetchData();
+    void setupChannel();
 
     return () => {
-       if (subscription) {
-         subscription.unsubscribe();
-       }
-     };
+      if (channel) {
+        supabase.removeChannel(channel); // use removeChannel, not unsubscribe
+      }
+      subscription.unsubscribe(); // Clean up auth state listener
+    };
   }, [navigate]);
 
   // Mark notification as read

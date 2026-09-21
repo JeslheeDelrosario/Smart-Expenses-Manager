@@ -18,6 +18,7 @@ import { supabase } from "../lib/supabase";
 import { useToast } from "../components/useToast";
 import ToastContainer from "../components/ToastContainer";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
+import { useCurrency } from "../hooks/useCurrency";
 
 // Types
 interface Transaction {
@@ -81,12 +82,7 @@ export default function TransactionsPage() {
     return parseFloat(formattedAmount.replace(/,/g, ''));
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
+  const { formatCurrency } = useCurrency();
 
   // Fetch transactions and categories
   useEffect(() => {

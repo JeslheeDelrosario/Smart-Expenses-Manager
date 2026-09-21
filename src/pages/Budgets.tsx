@@ -15,6 +15,7 @@ import { supabase } from "../lib/supabase";
 import { useToast } from "../components/useToast";
 import ToastContainer from "../components/ToastContainer";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
+import { useCurrency } from "../hooks/useCurrency";
 
 // Types
 interface Category {
@@ -37,7 +38,8 @@ export default function BudgetsPage() {
   const [totalSpent, setTotalSpent] = useState(0);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { toasts, toast, promiseToast, dismiss } = useToast();
-  
+  const { formatCurrency } = useCurrency();
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
@@ -47,13 +49,9 @@ export default function BudgetsPage() {
 
   // Handle budget input with automatic thousand separators
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove all non-numeric characters except decimal point
     const value = e.target.value.replace(/[^\d.]/g, '');
-    // Only allow one decimal point
     const parts = value.split('.');
     if (parts.length > 2) return;
-    
-    // Format number with commas
     if (parts[0]) {
       parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
@@ -61,30 +59,22 @@ export default function BudgetsPage() {
     setFormData(prev => ({ ...prev, budget: formattedValue }));
   };
 
-  // Get raw numeric value from formatted budget
   const getRawBudget = (formattedBudget: string) => {
     return parseFloat(formattedBudget.replace(/,/g, ''));
   };
 
   const colors = [
-    "#f59e0b", // amber - Food
-    "#3b82f6", // blue - Transport
-    "#8b5cf6", // purple - Entertainment
-    "#ec4899", // pink - Shopping
-    "#10b981", // green - Bills
-    "#ef4444", // red - Healthcare
-    "#6b7280", // gray - Other
-    "#06b6d4", // cyan
-    "#84cc16", // lime
-    "#f97316", // orange
+    "#f59e0b",
+    "#3b82f6",
+    "#8b5cf6",
+    "#ec4899",
+    "#10b981",
+    "#ef4444",
+    "#6b7280",
+    "#06b6d4",
+    "#84cc16",
+    "#f97316",
   ];
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
 
   // Calculate percentage spent
   const getPercentage = (spent: number, budget: number) => {
@@ -96,51 +86,27 @@ export default function BudgetsPage() {
     const fetchCategories = async () => {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        
-        if (!user || authError) {
-          navigate("/login");
-          return;
-        }
+        if (!user || authError) { navigate("/login"); return; }
 
-        // Run both queries in parallel to reduce loading time
         const [categoriesResult, expensesResult] = await Promise.all([
-          // Get categories
-          supabase
-            .from("categories")
-            .select("*")
-            .eq("user_id", user.id),
-          
-          // Calculate spent for each category
-          supabase
-            .from("expenses")
-            .select("*")
-            .eq("user_id", user.id)
-            .lt("amount", 0) // only expenses (negative amounts)
+          supabase.from("categories").select("*").eq("user_id", user.id),
+          supabase.from("expenses").select("*").eq("user_id", user.id).lt("amount", 0),
         ]);
 
         const { data: cats, error: catsError } = categoriesResult;
         const { data: expenses, error: expensesError } = expensesResult;
-          
         if (catsError) throw catsError;
         if (expensesError) throw expensesError;
 
         const enhancedCategories = cats?.map(cat => {
           const categoryExpenses = expenses?.filter(e => e.category === cat.name) || [];
           const spent = categoryExpenses.reduce((sum, e) => sum + Math.abs(e.amount), 0);
-          return {
-            ...cat,
-            spent,
-            budget: cat.budget || 15000, // default budget if not set
-          };
+          return { ...cat, spent, budget: cat.budget || 15000 };
         }) || [];
 
         setCategories(enhancedCategories);
-        
-        // Calculate totals
-        const totalBudg = enhancedCategories.reduce((sum, c) => sum + (c.budget || 0), 0);
-        const totalSpentAmt = enhancedCategories.reduce((sum, c) => sum + c.spent, 0);
-        setTotalBudget(totalBudg);
-        setTotalSpent(totalSpentAmt);
+        setTotalBudget(enhancedCategories.reduce((sum, c) => sum + (c.budget || 0), 0));
+        setTotalSpent(enhancedCategories.reduce((sum, c) => sum + c.spent, 0));
       } catch (error) {
         console.error("Error fetching categories:", error);
         toast("Failed to load budgets.", "error");
@@ -148,69 +114,45 @@ export default function BudgetsPage() {
         setLoading(false);
       }
     };
-
     fetchCategories();
   }, [navigate, toast]);
 
   const refreshCategories = async (userId: string) => {
-    // Run both queries in parallel for faster refresh
     const [categoriesResult, expensesResult] = await Promise.all([
       supabase.from("categories").select("*").eq("user_id", userId),
-      supabase.from("expenses").select("*").eq("user_id", userId).lt("amount", 0)
+      supabase.from("expenses").select("*").eq("user_id", userId).lt("amount", 0),
     ]);
     const { data: cats } = categoriesResult;
     const { data: expenses } = expensesResult;
-
     const enhanced = (cats || []).map(cat => {
       const spent = (expenses || []).filter(e => e.category === cat.name).reduce((sum, e) => sum + Math.abs(e.amount), 0);
       return { ...cat, spent, budget: cat.budget || 15000 };
     });
-
     setCategories(enhanced);
     setTotalBudget(enhanced.reduce((sum, c) => sum + c.budget, 0));
     setTotalSpent(enhanced.reduce((sum, c) => sum + c.spent, 0));
   };
 
-  // Handle submit for new/edit category
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
-      // Validate form data
-      if (!formData.name.trim()) {
-        toast("Please enter a category name.", "warning");
-        return;
-      }
+      if (!user) { navigate("/login"); return; }
+      if (!formData.name.trim()) { toast("Please enter a category name.", "warning"); return; }
       const budgetNum = getRawBudget(formData.budget);
-            if (isNaN(budgetNum) || budgetNum <= 0) {
-              toast("Please enter a valid budget amount.", "warning");
-              return;
-            }
+      if (isNaN(budgetNum) || budgetNum <= 0) { toast("Please enter a valid budget amount.", "warning"); return; }
 
       const isEditing = !!editingCategory;
-
       const saveOperation = async () => {
         if (isEditing) {
-          const { error: updateError } = await supabase
-            .from("categories")
+          const { error } = await supabase.from("categories")
             .update({ name: formData.name, color: formData.color, budget: budgetNum })
-            .eq("id", editingCategory.id)
-            .eq("user_id", user.id);
-          if (updateError) throw updateError;
+            .eq("id", editingCategory.id).eq("user_id", user.id);
+          if (error) throw error;
         } else {
-          const { error: insertError } = await supabase.from("categories").insert({
-            user_id: user.id,
-            name: formData.name,
-            color: formData.color,
-            budget: budgetNum,
-          });
-          if (insertError) throw insertError;
+          const { error } = await supabase.from("categories")
+            .insert({ user_id: user.id, name: formData.name, color: formData.color, budget: budgetNum });
+          if (error) throw error;
         }
         await refreshCategories(user.id);
       };
@@ -224,24 +166,16 @@ export default function BudgetsPage() {
         setShowAddModal(false);
         setEditingCategory(null);
         setFormData({ name: "", color: "#f59e0b", budget: "" });
-      } catch {
-        // error already shown by promiseToast
-      }
+      } catch { /* error already shown */ }
     } catch (error) {
       console.error("Error in handleSubmit:", error);
     }
   };
 
-  // Open delete confirmation modal
-  const confirmDelete = (id: string) => {
-    setCategoryToDelete(id);
-    setShowDeleteModal(true);
-  };
+  const confirmDelete = (id: string) => { setCategoryToDelete(id); setShowDeleteModal(true); };
 
-  // Execute delete after confirmation
   const executeDelete = async () => {
     if (!categoryToDelete) return;
-    
     const deleteOperation = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -249,16 +183,13 @@ export default function BudgetsPage() {
       if (error) throw error;
       await refreshCategories(user.id);
     };
-
     try {
       await promiseToast(deleteOperation(), {
         loading: "Deleting category...",
         success: "Category deleted.",
         error: "Failed to delete category.",
       });
-    } catch {
-      // error already shown by promiseToast
-    } finally {
+    } catch { /* error already shown */ } finally {
       setShowDeleteModal(false);
       setCategoryToDelete(null);
     }
@@ -266,41 +197,22 @@ export default function BudgetsPage() {
 
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.6,
-        delay: i * 0.1,
-      },
-    }),
+    visible: (i: number) => ({ opacity: 1, y: 0, transition: { duration: 0.6, delay: i * 0.1 } }),
   };
 
   return (
     <AppLayout>
-
-      {/* Main Content */}
       <main className="flex-1 min-w-0">
-        {/* Header */}
         <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <MobileMenuButton
-                className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors"
-              >
+              <MobileMenuButton className="lg:hidden p-2 text-gray-400 hover:text-white transition-colors">
                 <Menu className="w-6 h-6" />
               </MobileMenuButton>
-
-              <h1 className="text-3xl font-bold text-white leading-tight">
-                Budgets
-              </h1>
+              <h1 className="text-3xl font-bold text-white leading-tight">Budgets</h1>
             </div>
-
             <button
-              onClick={() => {
-                setShowAddModal(true);
-                setEditingCategory(null);
-              }}
+              onClick={() => { setShowAddModal(true); setEditingCategory(null); }}
               className="flex items-center gap-2 px-4 py-2 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
             >
               <Plus className="w-5 h-5" />
@@ -308,130 +220,64 @@ export default function BudgetsPage() {
             </button>
           </div>
         </header>
-        {/* Overview Cards */}
+
         <div className="px-6 py-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <motion.div
-              custom={0}
-              initial="hidden"
-              animate="visible"
-              variants={fadeInVariants}
-              className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
-            >
+            <motion.div custom={0} initial="hidden" animate="visible" variants={fadeInVariants} className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
               <p className="text-sm text-gray-400 mb-1">Total Budget</p>
-              <p className="text-3xl font-bold text-white">
-                {formatCurrency(totalBudget)}
-              </p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(totalBudget)}</p>
             </motion.div>
-            <motion.div
-              custom={1}
-              initial="hidden"
-              animate="visible"
-              variants={fadeInVariants}
-              className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
-            >
+            <motion.div custom={1} initial="hidden" animate="visible" variants={fadeInVariants} className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
               <p className="text-sm text-gray-400 mb-1">Total Spent</p>
-              <p className="text-3xl font-bold text-red-400">
-                {formatCurrency(totalSpent)}
-              </p>
+              <p className="text-3xl font-bold text-red-400">{formatCurrency(totalSpent)}</p>
             </motion.div>
-            <motion.div
-              custom={2}
-              initial="hidden"
-              animate="visible"
-              variants={fadeInVariants}
-              className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
-            >
+            <motion.div custom={2} initial="hidden" animate="visible" variants={fadeInVariants} className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
               <p className="text-sm text-gray-400 mb-1">Remaining</p>
-              <p className="text-3xl font-bold text-green-400">
-                {formatCurrency(totalBudget - totalSpent)}
-              </p>
+              <p className="text-3xl font-bold text-green-400">{formatCurrency(totalBudget - totalSpent)}</p>
             </motion.div>
           </div>
 
-          {/* Overall Progress Bar */}
-          <motion.div
-            custom={3}
-            initial="hidden"
-            animate="visible"
-            variants={fadeInVariants}
-            className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6 mb-8"
-          >
+          <motion.div custom={3} initial="hidden" animate="visible" variants={fadeInVariants} className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6 mb-8">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-white">
-                Overall Budget Usage
-              </h3>
-              <span className="text-gray-400">
-                {totalSpent > 0
-                  ? Math.round((totalSpent / totalBudget) * 100)
-                  : 0}
-                % used
-              </span>
+              <h3 className="text-lg font-semibold text-white">Overall Budget Usage</h3>
+              <span className="text-gray-400">{totalSpent > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0}% used</span>
             </div>
             <div className="w-full h-4 bg-[#0f172a] rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-500 ${totalSpent / totalBudget > 0.8 ? "bg-red-500" : "bg-[#818cf8]"}`}
-                style={{
-                  width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%`,
-                }}
+                style={{ width: `${Math.min((totalSpent / totalBudget) * 100, 100)}%` }}
               />
             </div>
             {totalSpent / totalBudget > 0.8 && (
               <div className="flex items-center gap-2 mt-3 text-yellow-400">
                 <AlertTriangle className="w-4 h-4" />
-                <span className="text-sm">
-                  You're approaching your total budget limit!
-                </span>
+                <span className="text-sm">You're approaching your total budget limit!</span>
               </div>
             )}
           </motion.div>
 
-          {/* Category Budget Cards */}
           {loading ? (
-            <div className="text-center py-12 text-gray-400">
-              Loading budgets...
-            </div>
+            <div className="text-center py-12 text-gray-400">Loading budgets...</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category, index) => {
-                const percentage = getPercentage(
-                  category.spent,
-                  category.budget,
-                );
+                const percentage = getPercentage(category.spent, category.budget);
                 const isOverBudget = percentage >= 80;
                 return (
-                  <motion.div
-                    key={category.id}
-                    custom={index + 4}
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInVariants}
-                    className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6"
-                  >
+                  <motion.div key={category.id} custom={index + 4} initial="hidden" animate="visible" variants={fadeInVariants} className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: category.color }}
-                        />
-                        <h3 className="text-lg font-semibold text-white">
-                          {category.name}
-                        </h3>
+                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: category.color }} />
+                        <h3 className="text-lg font-semibold text-white">{category.name}</h3>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
                             setEditingCategory(category);
-                            // Format budget with commas when editing
-                            const formattedBudget =
-                              category.budget?.toLocaleString("en-US", {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }) || "";
                             setFormData({
                               name: category.name,
                               color: category.color,
-                              budget: formattedBudget,
+                              budget: category.budget?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "",
                             });
                             setShowAddModal(true);
                           }}
@@ -439,10 +285,7 @@ export default function BudgetsPage() {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => confirmDelete(category.id)}
-                          className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                        >
+                        <button onClick={() => confirmDelete(category.id)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -451,44 +294,28 @@ export default function BudgetsPage() {
                     <div className="mb-4">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-gray-400">Spent</span>
-                        <span className="text-sm font-medium text-white">
-                          {formatCurrency(category.spent)} /{" "}
-                          {formatCurrency(category.budget || 0)}
-                        </span>
+                        <span className="text-sm font-medium text-white">{formatCurrency(category.spent)} / {formatCurrency(category.budget || 0)}</span>
                       </div>
                       <div className="w-full h-3 bg-[#0f172a] rounded-full overflow-hidden">
                         <div
                           className={`h-full transition-all duration-500 ${isOverBudget ? "bg-red-500" : ""}`}
-                          style={{
-                            width: `${percentage}%`,
-                            backgroundColor: isOverBudget
-                              ? undefined
-                              : category.color,
-                          }}
+                          style={{ width: `${percentage}%`, backgroundColor: isOverBudget ? undefined : category.color }}
                         />
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between pt-4 border-t border-[#4b5563]">
                       <span className="text-sm text-gray-400">Remaining</span>
-                      <span
-                        className={`text-sm font-semibold ${(category.budget || 0) - category.spent > 0 ? "text-green-400" : "text-red-400"}`}
-                      >
+                      <span className={`text-sm font-semibold ${(category.budget || 0) - category.spent > 0 ? "text-green-400" : "text-red-400"}`}>
                         <ArrowUpRight className="w-4 h-4 inline mr-1" />
-                        {formatCurrency(
-                          (category.budget || 0) - category.spent,
-                        )}
+                        {formatCurrency((category.budget || 0) - category.spent)}
                       </span>
                     </div>
 
                     {isOverBudget && (
                       <div className="flex items-center gap-2 mt-4 p-2 bg-yellow-400/10 rounded-lg">
                         <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                        <span className="text-xs text-yellow-400">
-                          {percentage >= 100
-                            ? "Over budget!"
-                            : "Approaching limit"}
-                        </span>
+                        <span className="text-xs text-yellow-400">{percentage >= 100 ? "Over budget!" : "Approaching limit"}</span>
                       </div>
                     )}
                   </motion.div>
@@ -499,129 +326,53 @@ export default function BudgetsPage() {
         </div>
       </main>
 
-      {/* Add/Edit Category Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-[#4b5563]">
-              <h2 className="text-xl font-bold text-white">
-                {editingCategory ? "Edit Category" : "Add New Category"}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowAddModal(false);
-                  setEditingCategory(null);
-                }}
-                className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]"
-              >
+              <h2 className="text-xl font-bold text-white">{editingCategory ? "Edit Category" : "Add New Category"}</h2>
+              <button onClick={() => { setShowAddModal(false); setEditingCategory(null); }} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]">
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Category Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
-                  placeholder="e.g., Subscriptions"
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2">Category Name</label>
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="e.g., Subscriptions" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Monthly Budget (PHP)
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  required
-                  value={formData.budget}
-                  onChange={handleBudgetChange}
-                  className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
-                  placeholder="10,000.00"
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2">Monthly Budget</label>
+                <input type="text" inputMode="numeric" required value={formData.budget} onChange={handleBudgetChange} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="10,000.00" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Color
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Color</label>
                 <div className="flex flex-wrap gap-2">
                   {colors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, color })}
-                      className={`w-8 h-8 rounded-full transition-transform ${formData.color === color ? "ring-2 ring-white ring-offset-2 ring-offset-[#1e293b] scale-110" : "hover:scale-110"}`}
-                      style={{ backgroundColor: color }}
-                    />
+                    <button key={color} type="button" onClick={() => setFormData({ ...formData, color })} className={`w-8 h-8 rounded-full transition-transform ${formData.color === color ? "ring-2 ring-white ring-offset-2 ring-offset-[#1e293b] scale-110" : "hover:scale-110"}`} style={{ backgroundColor: color }} />
                   ))}
                 </div>
               </div>
-
               <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setEditingCategory(null);
-                  }}
-                  className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
-                >
-                  {editingCategory ? "Update" : "Add"} Category
-                </button>
+                <button type="button" onClick={() => { setShowAddModal(false); setEditingCategory(null); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors">{editingCategory ? "Update" : "Add"} Category</button>
               </div>
             </form>
           </motion.div>
         </div>
       )}
+
       <ToastContainer toasts={toasts} dismiss={dismiss} />
-      {/* Delete Confirmation Modal */}
+
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-[#4b5563]">
               <h3 className="text-xl font-bold text-white">Delete Budget</h3>
               <p className="text-gray-400 mt-2">Are you sure you want to delete this budget category? This action cannot be undone.</p>
             </div>
             <div className="p-6 flex gap-3">
-              <button
-                type="button"
-                onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}
-                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={executeDelete}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
+              <button type="button" onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
+              <button type="button" onClick={executeDelete} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Delete</button>
             </div>
           </motion.div>
         </div>

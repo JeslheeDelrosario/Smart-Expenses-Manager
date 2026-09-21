@@ -15,18 +15,25 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { SUPPORTED_CURRENCIES } from "../lib/currency";
 import { updatePassword } from "../services/auth";
+import { requestPushPermission } from "../services/push.service";
 import { useToast } from "../components/useToast";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
+import { usePreferences } from "../hooks/usePreferences";
 
 // Toggle switch component - moved outside to fix "created during render" error
-const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void }) => (
+const Toggle = ({ enabled, onChange, label }: { enabled: boolean; onChange: () => void; label: string }) => (
   <button
+    type="button"
     onClick={onChange}
-    className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${enabled ? "bg-[#818cf8]" : "bg-[#4b5563]"}`}
+    role="switch"
+    aria-checked={enabled}
+    aria-label={label}
+    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#818cf8]/60 focus:ring-offset-2 focus:ring-offset-[#0f172a] ${enabled ? "bg-[#818cf8]" : "bg-[#334155]"}`}
   >
     <span
-      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ${enabled ? "translate-x-7" : "translate-x-1"}`}
+      className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${enabled ? "translate-x-5" : "translate-x-0"}`}
     />
   </button>
 );
@@ -34,13 +41,8 @@ const Toggle = ({ enabled, onChange }: { enabled: boolean; onChange: () => void 
 export default function SettingsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("preferences");
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(false);
-  const [weeklySummary, setWeeklySummary] = useState(true);
-  const [expenseReminders, setExpenseReminders] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
-  const [selectedCurrency, setSelectedCurrency] = useState("PHP");
+  const { preferences, updatePreference, isLoading: preferencesLoading } = usePreferences();
 
   // Change password state
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -58,13 +60,23 @@ export default function SettingsPage() {
     { id: "danger", label: "Danger Zone" },
   ];
 
-  const currencies = [
-    { code: "PHP", name: "Philippine Peso (₱)" },
-    { code: "USD", name: "US Dollar ($)" },
-    { code: "EUR", name: "Euro (€)" },
-    { code: "GBP", name: "British Pound (£)" },
-    { code: "JPY", name: "Japanese Yen (¥)" },
-  ];
+  const currencies = SUPPORTED_CURRENCIES;
+
+  const handleToggle = async (key: keyof typeof preferences, currentValue: boolean) => {
+    await updatePreference(key, !currentValue);
+  };
+
+  const handlePushToggle = async () => {
+    if (!preferences.push_notifications) {
+      const permission = await requestPushPermission();
+      if (permission === "denied") {
+        toast("Browser push notifications are disabled. Please enable them in your browser settings.", "warning");
+        return;
+      }
+    }
+
+    await updatePreference("push_notifications", !preferences.push_notifications);
+  };
 
 
 
@@ -147,7 +159,7 @@ export default function SettingsPage() {
       {/* Main Content */}
       <main className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-4">
+        <header className="border-b border-[#334155] bg-[#1e293b]/70 px-4 py-4 backdrop-blur-sm sm:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <MobileMenuButton
@@ -155,21 +167,27 @@ export default function SettingsPage() {
               >
                 <Menu className="w-6 h-6" />
               </MobileMenuButton>
-              <h1 className="text-2xl font-bold text-white">Settings</h1>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white">Settings</h1>
+                <p className="mt-0.5 text-sm text-gray-400">Personalize your workspace and notifications</p>
+              </div>
             </div>
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Tabs */}
-          <div className="flex flex-wrap gap-2 mb-6 border-b border-[#4b5563] pb-1">
+          <div className="mb-6 flex gap-1 overflow-x-auto border-b border-[#334155] pb-1" role="tablist" aria-label="Settings sections">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors ${activeTab === tab.id
-                    ? "bg-[#0f172a] text-[#818cf8] border border-[#4b5563] border-b-[#0f172a]"
-                    : "text-gray-400 hover:text-white"
+                className={`whitespace-nowrap rounded-t-lg px-3 py-2.5 text-sm font-medium transition-colors sm:px-4 ${activeTab === tab.id
+                    ? "border border-[#334155] border-b-[#0f172a] bg-[#0f172a] text-[#a5b4fc]"
+                    : "text-gray-400 hover:bg-[#1e293b] hover:text-white"
                   }`}
               >
                 {tab.label}
@@ -184,51 +202,60 @@ export default function SettingsPage() {
               animate="visible"
               variants={fadeInVariants}
               custom={0}
-              className="max-w-2xl space-y-6"
+              className="grid max-w-4xl grid-cols-1 gap-5 lg:grid-cols-2"
             >
-              <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+              <div className="rounded-2xl border border-[#334155] bg-[#1e293b] p-5 shadow-xl shadow-black/10 sm:p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <Globe className="w-5 h-5 text-[#818cf8]" />
                   Regional Settings
                 </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-3 border-b border-[#4b5563]">
+                <div className="space-y-0 divide-y divide-[#334155]">
+                  <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-white font-medium">Currency</p>
                       <p className="text-sm text-gray-400">Select your primary currency</p>
                     </div>
                     <select
-                      value={selectedCurrency}
-                      onChange={(e) => setSelectedCurrency(e.target.value)}
-                      className="px-4 py-2 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white focus:outline-none focus:border-[#818cf8]"
+                      disabled={preferencesLoading}
+                      value={preferences.currency}
+                      onChange={(e) => void updatePreference("currency", e.target.value)}
+                      className="w-full sm:w-auto px-3 py-2 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white text-sm focus:outline-none focus:border-[#818cf8] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {currencies.map((c) => (
-                        <option key={c.code} value={c.code}>{c.name}</option>
+                        <option key={c.code} value={c.code}>{c.label}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center justify-between gap-4 py-4">
                     <div>
                       <p className="text-white font-medium">Dark Mode</p>
                       <p className="text-sm text-gray-400">Use dark theme across the app</p>
                     </div>
-                    <Toggle enabled={darkMode} onChange={() => setDarkMode(!darkMode)} />
+                    <Toggle
+                      label="Toggle dark mode"
+                      enabled={preferences.dark_mode}
+                      onChange={() => void handleToggle("dark_mode", preferences.dark_mode)}
+                    />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+              <div className="rounded-2xl border border-[#334155] bg-[#1e293b] p-5 shadow-xl shadow-black/10 sm:p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <Moon className="w-5 h-5 text-[#818cf8]" />
                   Appearance
                 </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between py-3 border-b border-[#4b5563]">
+                <div className="divide-y divide-[#334155]">
+                  <div className="flex items-center justify-between gap-4 py-4">
                     <div>
                       <p className="text-white font-medium">Animations</p>
                       <p className="text-sm text-gray-400">Enable smooth animations</p>
                     </div>
-                    <Toggle enabled={true} onChange={() => {}} />
+                    <Toggle
+                      label="Toggle animations"
+                      enabled={preferences.animations_enabled}
+                      onChange={() => void handleToggle("animations_enabled", preferences.animations_enabled)}
+                    />
                   </div>
                 </div>
               </div>
@@ -242,7 +269,7 @@ export default function SettingsPage() {
               animate="visible"
               variants={fadeInVariants}
               custom={0}
-              className="max-w-2xl space-y-6"
+              className="max-w-3xl space-y-5"
             >
               <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
@@ -255,21 +282,33 @@ export default function SettingsPage() {
                       <p className="text-white font-medium">Enable Email Notifications</p>
                       <p className="text-sm text-gray-400">Receive important updates via email</p>
                     </div>
-                    <Toggle enabled={emailNotifications} onChange={() => setEmailNotifications(!emailNotifications)} />
+                    <Toggle
+                      label="Toggle email notifications"
+                      enabled={preferences.email_notifications}
+                      onChange={() => void handleToggle("email_notifications", preferences.email_notifications)}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-3 border-b border-[#4b5563]">
                     <div>
                       <p className="text-white font-medium">Weekly Summary</p>
                       <p className="text-sm text-gray-400">Get a weekly spending report</p>
                     </div>
-                    <Toggle enabled={weeklySummary} onChange={() => setWeeklySummary(!weeklySummary)} />
+                    <Toggle
+                      label="Toggle weekly summaries"
+                      enabled={preferences.weekly_summaries}
+                      onChange={() => void handleToggle("weekly_summaries", preferences.weekly_summaries)}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div>
                       <p className="text-white font-medium">Expense Logging Reminders</p>
                       <p className="text-sm text-gray-400">Remind you to log your expenses</p>
                     </div>
-                    <Toggle enabled={expenseReminders} onChange={() => setExpenseReminders(!expenseReminders)} />
+                    <Toggle
+                      label="Toggle expense reminders"
+                      enabled={preferences.expense_reminders}
+                      onChange={() => void handleToggle("expense_reminders", preferences.expense_reminders)}
+                    />
                   </div>
                 </div>
               </div>
@@ -284,7 +323,11 @@ export default function SettingsPage() {
                     <p className="text-white font-medium">Enable Push Notifications</p>
                     <p className="text-sm text-gray-400">Receive browser push notifications</p>
                   </div>
-                  <Toggle enabled={pushNotifications} onChange={() => setPushNotifications(!pushNotifications)} />
+                  <Toggle
+                    label="Toggle push notifications"
+                    enabled={preferences.push_notifications}
+                    onChange={() => void handlePushToggle()}
+                  />
                 </div>
               </div>
             </motion.div>
@@ -310,7 +353,11 @@ export default function SettingsPage() {
                       <p className="text-white font-medium">Two-Factor Authentication</p>
                       <p className="text-sm text-gray-400">Add an extra layer of security</p>
                     </div>
-                    <Toggle enabled={twoFactorEnabled} onChange={() => setTwoFactorEnabled(!twoFactorEnabled)} />
+                    <Toggle
+                      label="Toggle two-factor authentication"
+                      enabled={twoFactorEnabled}
+                      onChange={() => setTwoFactorEnabled(!twoFactorEnabled)}
+                    />
                   </div>
                   <div className="flex items-center justify-between py-3">
                     <div>

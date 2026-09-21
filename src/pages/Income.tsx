@@ -6,8 +6,8 @@ import { useToast } from "../components/useToast";
 import ToastContainer from "../components/ToastContainer";
 import { useNavigate } from "react-router-dom";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
+import { useCurrency } from "../hooks/useCurrency";
 
-// Interface for income entries (matches your expenses table structure)
 interface Income {
   id: string;
   user_id: string;
@@ -22,8 +22,6 @@ interface Income {
 
 export default function IncomePage() {
   const navigate = useNavigate();
-
-  // State for our data
   const [receivedIncomes, setReceivedIncomes] = useState<Income[]>([]);
   const [pendingIncomes, setPendingIncomes] = useState<Income[]>([]);
   const [currentBalance, setCurrentBalance] = useState(0);
@@ -34,6 +32,7 @@ export default function IncomePage() {
   const [editingIncome, setEditingIncome] = useState<Income | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toasts, toast, promiseToast, dismiss } = useToast();
+  const { formatCurrency } = useCurrency();
 
   const [formData, setFormData] = useState({
     source: "",
@@ -43,15 +42,6 @@ export default function IncomePage() {
     is_pending: false,
   });
 
-  // Currency formatter (matches all other pages)
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(amount);
-  };
-
-  // Reset form function
   const resetForm = () => {
     setFormData({
       source: "",
@@ -62,68 +52,35 @@ export default function IncomePage() {
     });
   };
 
-  // Handle amount input with automatic thousand separators
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d.]/g, '');
-    const parts = value.split('.');
+    const value = e.target.value.replace(/[^\d.]/g, "");
+    const parts = value.split(".");
     if (parts.length > 2) return;
-    if (parts[0]) {
-      parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
-    const formattedValue = parts.join('.');
-    setFormData(prev => ({ ...prev, amount: formattedValue }));
+    if (parts[0]) parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    setFormData((prev) => ({ ...prev, amount: parts.join(".") }));
   };
 
-  // Get raw numeric value from formatted amount
-  const getRawAmount = (formattedAmount: string) => {
-    return parseFloat(formattedAmount.replace(/,/g, ''));
-  };
+  const getRawAmount = (formattedAmount: string) =>
+    parseFloat(formattedAmount.replace(/,/g, ""));
 
-  // Fetch all income data from Supabase
   const fetchData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login");
-        return;
-      }
+      if (!user) { navigate("/login"); return; }
 
-      // Run both queries in parallel to reduce loading time
       const [incomeResult, transactionsResult] = await Promise.all([
-        // Get all income entries (filtered by category = "Income")
-        supabase
-          .from("expenses")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("category", "Income")
-          .order("date", { ascending: false }),
-        
-        // Calculate current balance from all transactions (only non-pending)
-        supabase
-          .from("expenses")
-          .select("amount, is_pending")
-          .eq("user_id", user.id)
+        supabase.from("expenses").select("*").eq("user_id", user.id).eq("category", "Income").order("date", { ascending: false }),
+        supabase.from("expenses").select("amount, is_pending").eq("user_id", user.id),
       ]);
 
       const { data: allIncome, error: incomeError } = incomeResult;
       const { data: allTransactions, error: balanceError } = transactionsResult;
-
       if (incomeError) throw incomeError;
       if (balanceError) throw balanceError;
-      
-      // Separate pending and received income
-      const pending = allIncome?.filter(item => item.is_pending === true) || [];
-      const received = allIncome?.filter(item => item.is_pending === false) || [];
-      
-      setReceivedIncomes(received);
-      setPendingIncomes(pending);
 
-      // Calculate balance
-      const balance = allTransactions
-        ?.filter(t => !t.is_pending) // Only include transactions you've actually received/paid
-        .reduce((sum, t) => sum + t.amount, 0) || 0;
-      setCurrentBalance(balance);
-
+      setPendingIncomes(allIncome?.filter((i) => i.is_pending === true) || []);
+      setReceivedIncomes(allIncome?.filter((i) => i.is_pending === false) || []);
+      setCurrentBalance(allTransactions?.filter((t) => !t.is_pending).reduce((sum, t) => sum + t.amount, 0) || 0);
     } catch (error) {
       console.error("Error fetching income data:", error);
     } finally {
@@ -131,40 +88,26 @@ export default function IncomePage() {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [navigate]);
+  useEffect(() => { fetchData(); }, [navigate]);
 
-  // Mark pending income as received
   const markAsReceived = async (incomeId: string) => {
-    const operation = async () => {
-      const { error } = await supabase
-        .from("expenses")
-        .update({ is_pending: false })
-        .eq("id", incomeId);
-      if (error) throw error;
-      await fetchData();
-    };
-
     try {
-      await promiseToast(operation(), {
-        loading: "Marking as received...",
-        success: "Income marked as received.",
-        error: "Failed to update income status.",
-      });
-    } catch {
-      // error already shown by promiseToast
-    }
+      await promiseToast(
+        (async () => {
+          const { error } = await supabase.from("expenses").update({ is_pending: false }).eq("id", incomeId);
+          if (error) throw error;
+          await fetchData();
+        })(),
+        { loading: "Marking as received...", success: "Income marked as received.", error: "Failed to update income status." }
+      );
+    } catch { /* shown by promiseToast */ }
   };
 
-  // Handle edit income - populate form with existing data
   const handleEdit = (income: Income) => {
     setEditingIncome(income);
     setFormData({
       source: income.description,
-      amount: income.amount.toLocaleString("en-PH", {
-        minimumFractionDigits: 2,
-      }),
+      amount: income.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 }),
       date: income.date,
       is_monthly: income.is_monthly || false,
       is_pending: income.is_pending || false,
@@ -172,109 +115,57 @@ export default function IncomePage() {
     setShowAddModal(true);
   };
 
-  // Open delete confirmation modal
-  const confirmDelete = (id: string) => {
-    setIncomeToDelete(id);
-    setShowDeleteModal(true);
-  };
+  const confirmDelete = (id: string) => { setIncomeToDelete(id); setShowDeleteModal(true); };
 
-  // Execute delete after confirmation
   const executeDelete = async () => {
     if (!incomeToDelete) return;
-    
-    const deleteOperation = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate("/login"); return; }
-      const { error } = await supabase
-        .from("expenses")
-        .delete()
-        .eq("id", incomeToDelete)
-        .eq("user_id", user.id);
-      if (error) throw error;
-      await fetchData();
-    };
-
     try {
-      await promiseToast(deleteOperation(), {
-        loading: "Deleting income...",
-        success: "Income deleted.",
-        error: "Failed to delete income.",
-      });
-    } catch {
-      // error already shown by promiseToast
-    } finally {
+      await promiseToast(
+        (async () => {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) { navigate("/login"); return; }
+          const { error } = await supabase.from("expenses").delete().eq("id", incomeToDelete).eq("user_id", user.id);
+          if (error) throw error;
+          await fetchData();
+        })(),
+        { loading: "Deleting income...", success: "Income deleted.", error: "Failed to delete income." }
+      );
+    } catch { /* shown by promiseToast */ } finally {
       setShowDeleteModal(false);
       setIncomeToDelete(null);
     }
   };
 
-  // Handle form submission for new or edited income
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return; // Prevent duplicate submissions
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate("/login");
-        return;
-      }
-
-      // Validate form
-      if (!formData.source.trim()) {
-        toast("Please enter an income source.", "warning");
-        return;
-      }
+      if (!user) { navigate("/login"); return; }
+      if (!formData.source.trim()) { toast("Please enter an income source.", "warning"); return; }
       const amount = getRawAmount(formData.amount);
-      if (isNaN(amount) || amount <= 0) {
-        toast("Please enter a valid amount.", "warning");
-        return;
-      }
+      if (isNaN(amount) || amount <= 0) { toast("Please enter a valid amount.", "warning"); return; }
 
       const isEditing = !!editingIncome;
-
-      const saveOperation = async () => {
-        if (isEditing) {
-          const { error } = await supabase
-            .from("expenses")
-            .update({
-              description: formData.source,
-              amount,
-              date: formData.date,
-              is_monthly: formData.is_monthly,
-              is_pending: formData.is_pending,
-            })
-            .eq("id", editingIncome.id)
-            .eq("user_id", user.id);
-          if (error) throw error;
-        } else {
-          const { error } = await supabase.from("expenses").insert({
-            user_id: user.id,
-            description: formData.source,
-            amount,
-            category: "Income",
-            category_color: "#22c55e",
-            date: formData.date,
-            is_monthly: formData.is_monthly,
-            is_pending: formData.is_pending,
-          });
-          if (error) throw error;
-        }
-        await fetchData();
-      };
-
       try {
-        await promiseToast(saveOperation(), {
-          loading: isEditing ? "Updating income..." : "Adding income...",
-          success: isEditing ? "Income updated." : "Income added.",
-          error: isEditing ? "Failed to update income." : "Failed to add income.",
-        });
+        await promiseToast(
+          (async () => {
+            if (isEditing) {
+              const { error } = await supabase.from("expenses").update({ description: formData.source, amount, date: formData.date, is_monthly: formData.is_monthly, is_pending: formData.is_pending }).eq("id", editingIncome.id).eq("user_id", user.id);
+              if (error) throw error;
+            } else {
+              const { error } = await supabase.from("expenses").insert({ user_id: user.id, description: formData.source, amount, category: "Income", category_color: "#22c55e", date: formData.date, is_monthly: formData.is_monthly, is_pending: formData.is_pending });
+              if (error) throw error;
+            }
+            await fetchData();
+          })(),
+          { loading: isEditing ? "Updating income..." : "Adding income...", success: isEditing ? "Income updated." : "Income added.", error: isEditing ? "Failed to update income." : "Failed to add income." }
+        );
         setShowAddModal(false);
         setEditingIncome(null);
         resetForm();
-      } catch {
-        // error already shown by promiseToast
-      }
+      } catch { /* shown by promiseToast */ }
     } catch (error) {
       console.error("Error in handleSubmit:", error);
     } finally {
@@ -282,352 +173,218 @@ export default function IncomePage() {
     }
   };
 
-  
-
-  // Main page render
   return (
     <AppLayout>
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Mobile Header */}
           <div className="lg:hidden sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-lg border-b border-[#4b5563] p-4 flex items-center justify-between">
             <h1 className="text-xl font-bold text-[#f8fafc]">ExpenseTracker</h1>
-            <MobileMenuButton
-              toggle
-              className="p-2.5 rounded-xl hover:bg-[#334155] transition-colors duration-200"
-            >
+            <MobileMenuButton toggle className="p-2.5 rounded-xl hover:bg-[#334155] transition-colors duration-200">
               <Menu className="w-6 h-6 text-[#e2e8f0]" />
             </MobileMenuButton>
           </div>
 
-          {/* Desktop Header */}
           <div className="hidden lg:flex sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-sm px-8 py-4 border-b border-[#4b5563]/50 -mx-4 mt-0 mb-6 pb-3">
             <div>
               <h1 className="text-2xl font-bold text-white">Income Tracker</h1>
               <p className="text-gray-400 mt-1">
-                Current Balance: <span className={`font-semibold ${currentBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                Current Balance:{" "}
+                <span className={`font-semibold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}>
                   {formatCurrency(currentBalance)}
                 </span>
               </p>
             </div>
-            <button
-              onClick={() => { setShowAddModal(true); resetForm(); }}
-              className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors"
-            >
+            <button onClick={() => { setShowAddModal(true); resetForm(); }} className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors">
               <Plus className="w-5 h-5" />
               Add Income
             </button>
           </div>
 
           <div className="p-6">
-
-        <div className="p-6">
-          {loading ? (
-            <div className="text-center py-12 text-gray-400">Loading income data...</div>
-          ) : (
-            <>
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                  <p className="text-sm text-gray-400 mb-2">Current Balance</p>
-                  <p className={`text-2xl font-bold ${currentBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {formatCurrency(currentBalance)}
-                  </p>
-                </div>
-                <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                  <p className="text-sm text-gray-400 mb-2">Total Received</p>
-                  <p className="text-2xl font-bold text-green-400">
-                    {formatCurrency(receivedIncomes.reduce((sum, i) => sum + i.amount, 0))}
-                  </p>
-                </div>
-                <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                  <p className="text-sm text-gray-400 mb-2">Incoming (Pending)</p>
-                  <p className="text-2xl font-bold text-blue-400">
-                    {formatCurrency(pendingIncomes.reduce((sum, i) => sum + i.amount, 0))}
-                  </p>
-                </div>
-                <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                  <p className="text-sm text-gray-400 mb-2">Monthly Income</p>
-                  <p className="text-2xl font-bold text-amber-400">
-                    {formatCurrency(receivedIncomes.filter(i => i.is_monthly).reduce((sum, i) => sum + i.amount, 0))}
-                  </p>
-                </div>
-              </div>
-
-
-
-              {/* Incoming/Pending Income Section */}
-              {pendingIncomes.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-bold text-white mb-4">📥 Incoming Income (Pending)</h2>
-                  <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-[#4b5563]">
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Expected Date</th>
-                          <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
-                          <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
-                          <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#4b5563]">
-                        {pendingIncomes.map((income) => (
-                          <tr key={income.id} className="hover:bg-[#334155]/50">
-                            <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
-                            <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
-                            <td className="px-6 py-4 text-center">
-                              <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                {income.is_monthly ? 'Monthly' : 'One-time'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm font-semibold text-right text-blue-400">{formatCurrency(income.amount)}</td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => markAsReceived(income.id)}
-                                  className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors"
-                                  title="Mark as received"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => handleEdit(income)}
-                                  className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                                  title="Edit"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => confirmDelete(income.id)}
-                                  className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                                  title="Delete"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            <div className="p-6">
+              {loading ? (
+                <div className="text-center py-12 text-gray-400">Loading income data...</div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+                      <p className="text-sm text-gray-400 mb-2">Current Balance</p>
+                      <p className={`text-2xl font-bold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}>{formatCurrency(currentBalance)}</p>
+                    </div>
+                    <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+                      <p className="text-sm text-gray-400 mb-2">Total Received</p>
+                      <p className="text-2xl font-bold text-green-400">{formatCurrency(receivedIncomes.reduce((sum, i) => sum + i.amount, 0))}</p>
+                    </div>
+                    <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+                      <p className="text-sm text-gray-400 mb-2">Incoming (Pending)</p>
+                      <p className="text-2xl font-bold text-blue-400">{formatCurrency(pendingIncomes.reduce((sum, i) => sum + i.amount, 0))}</p>
+                    </div>
+                    <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
+                      <p className="text-sm text-gray-400 mb-2">Monthly Income</p>
+                      <p className="text-2xl font-bold text-amber-400">{formatCurrency(receivedIncomes.filter((i) => i.is_monthly).reduce((sum, i) => sum + i.amount, 0))}</p>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Received Income Section */}
-              <div>
-                <h2 className="text-xl font-bold text-white mb-4">✅ Received Income</h2>
-                <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
-                  {receivedIncomes.length === 0 ? (
-                    <p className="text-center py-12 text-gray-400">No income recorded yet. Add your first income!</p>
-                  ) : (
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-[#4b5563]">
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
-                          <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Date</th>
-                          <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
-                          <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
-                          <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#4b5563]">
-                        {receivedIncomes.map((income) => (
-                          <tr key={income.id} className="hover:bg-[#334155]/50">
-                            <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
-                            <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
-                            <td className="px-6 py-4 text-center">
-                              <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                                {income.is_monthly ? 'Monthly' : 'One-time'}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-sm font-semibold text-right text-green-400">
-                              <div className="flex items-center justify-end gap-1">
-                                <ArrowUpRight className="w-4 h-4" />
-                                {formatCurrency(income.amount)}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => handleEdit(income)}
-                                  className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                                  title="Edit"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                  </svg>
-                                </button>
-                                <button
-                                  onClick={() => confirmDelete(income.id)}
-                                  className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                                  title="Delete"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                  </svg>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  {pendingIncomes.length > 0 && (
+                    <div className="mb-8">
+                      <h2 className="text-xl font-bold text-white mb-4">📥 Incoming Income (Pending)</h2>
+                      <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-[#4b5563]">
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Expected Date</th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
+                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#4b5563]">
+                            {pendingIncomes.map((income) => (
+                              <tr key={income.id} className="hover:bg-[#334155]/50">
+                                <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
+                                <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
+                                <td className="px-6 py-4 text-center">
+                                  <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}>
+                                    {income.is_monthly ? "Monthly" : "One-time"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-semibold text-right text-blue-400">{formatCurrency(income.amount)}</td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button onClick={() => markAsReceived(income.id)} className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors" title="Mark as received">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    </button>
+                                    <button onClick={() => handleEdit(income)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Edit">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    </button>
+                                    <button onClick={() => confirmDelete(income.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   )}
-                </div>
+
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-4">✅ Received Income</h2>
+                    <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
+                      {receivedIncomes.length === 0 ? (
+                        <p className="text-center py-12 text-gray-400">No income recorded yet. Add your first income!</p>
+                      ) : (
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-[#4b5563]">
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Date</th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
+                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#4b5563]">
+                            {receivedIncomes.map((income) => (
+                              <tr key={income.id} className="hover:bg-[#334155]/50">
+                                <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
+                                <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
+                                <td className="px-6 py-4 text-center">
+                                  <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}>
+                                    {income.is_monthly ? "Monthly" : "One-time"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-sm font-semibold text-right text-green-400">
+                                  <div className="flex items-center justify-end gap-1">
+                                    <ArrowUpRight className="w-4 h-4" />
+                                    {formatCurrency(income.amount)}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <button onClick={() => handleEdit(income)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Edit">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    </button>
+                                    <button onClick={() => confirmDelete(income.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
+                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {showAddModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl">
+                  <div className="flex items-center justify-between p-6 border-b border-[#4b5563]">
+                    <h2 className="text-xl font-bold text-white">{editingIncome ? "Edit Income" : "Add New Income"}</h2>
+                    <button onClick={() => { setShowAddModal(false); resetForm(); }} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Income Source</label>
+                      <input type="text" required value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="e.g., Salary, Freelance" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+                      <input type="text" inputMode="numeric" required value={formData.amount} onChange={handleAmountChange} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="25,000.00" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
+                      <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white focus:outline-none focus:border-[#818cf8]" />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" id="is_pending" checked={formData.is_pending} onChange={(e) => setFormData({ ...formData, is_pending: e.target.checked })} className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]" />
+                      <label htmlFor="is_pending" className="text-sm font-medium text-gray-300">This is incoming (not yet received)</label>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input type="checkbox" id="is_monthly" checked={formData.is_monthly} onChange={(e) => setFormData({ ...formData, is_monthly: e.target.checked })} className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]" />
+                      <label htmlFor="is_monthly" className="text-sm font-medium text-gray-300">This is monthly income</label>
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button type="button" onClick={() => { setShowAddModal(false); resetForm(); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
+                      <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                        {isSubmitting ? (
+                          <>
+                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z" /></svg>
+                            Saving...
+                          </>
+                        ) : editingIncome ? "Update Income" : "Add Income"}
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
               </div>
-            </>
-          )}
-        </div>
-
-        {/* Add Income Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl"
-            >
-              <div className="flex items-center justify-between p-6 border-b border-[#4b5563]">
-                <h2 className="text-xl font-bold text-white">{editingIncome ? "Edit Income" : "Add New Income"}</h2>
-                <button
-                  onClick={() => { setShowAddModal(false); resetForm(); }}
-                  className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Income Source</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.source}
-                    onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
-                    placeholder="e.g., Salary, Freelance"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Amount (PHP)</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    required
-                    value={formData.amount}
-                    onChange={handleAmountChange}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
-                    placeholder="25,000.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white focus:outline-none focus:border-[#818cf8]"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="is_pending"
-                    checked={formData.is_pending}
-                    onChange={(e) => setFormData({ ...formData, is_pending: e.target.checked })}
-                    className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]"
-                  />
-                  <label htmlFor="is_pending" className="text-sm font-medium text-gray-300">This is incoming (not yet received)</label>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="is_monthly"
-                    checked={formData.is_monthly}
-                    onChange={(e) => setFormData({ ...formData, is_monthly: e.target.checked })}
-                    className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]"
-                  />
-                  <label htmlFor="is_monthly" className="text-sm font-medium text-gray-300">This is monthly income</label>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => { setShowAddModal(false); resetForm(); }}
-                    className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#818cf8] flex items-center justify-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z" />
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      editingIncome ? "Update Income" : "Add Income"
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
+            )}
           </div>
         </main>
       </div>
+
       <ToastContainer toasts={toasts} dismiss={dismiss} />
-      {/* Delete Confirmation Modal */}
+
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
-          >
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden">
             <div className="p-6 border-b border-[#4b5563]">
               <h3 className="text-xl font-bold text-white">Delete Income</h3>
               <p className="text-gray-400 mt-2">Are you sure you want to delete this income entry? This action cannot be undone.</p>
             </div>
             <div className="p-6 flex gap-3">
-              <button
-                type="button"
-                onClick={() => { setShowDeleteModal(false); setIncomeToDelete(null); }}
-                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={executeDelete}
-                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Delete
-              </button>
+              <button type="button" onClick={() => { setShowDeleteModal(false); setIncomeToDelete(null); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
+              <button type="button" onClick={executeDelete} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Delete</button>
             </div>
           </motion.div>
         </div>
