@@ -47,82 +47,249 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+
+  /* --- LIGHT MODE (Soft Ice Theme - Eye-Safe & Crisp) --- */
+  --background: #f4f8fb; /* Glare-free soft ice background */
+  --foreground: #09182b; /* [Your #09182B] AAA 15.5:1 contrast, ultra-sharp text */
+
+  --card: #ffffff; /* Pure white cards for depth */
+  --card-foreground: #09182b;
+
+  --popover: #ffffff;
+  --popover-foreground: #09182b;
+
+  --primary: #0b6fa4; /* Accessible Ocean Blue */
+  --primary-foreground: #ffffff;
+
+  --secondary: #d4dee4; /* [Your #D4DEE4] Coin highlight as soft pill/tag background */
+  --secondary-foreground: #09182b;
+
+  --muted: #e7eff6; /* Very gentle background for muted tabs */
+  --muted-foreground: #486581; /* High-contrast slate blue for subtitles (AA Pass) */
+
+  --accent: #c4dbea; /* [Your #C4DBEA] Coin main face as accent highlight */
+  --accent-foreground: #09182b;
+
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.086 0.02 196);
-  --sidebar-foreground: oklch(0.943 0.013 197);
-  --sidebar-primary: oklch(0.73 0.14 198); /* #22ade7 - accent color */
-  --sidebar-primary-foreground: oklch(0.086 0.02 196);
-  --sidebar-accent: oklch(0.425 0.08 198); /* #1a6382 - secondary color */
-  --sidebar-accent-foreground: oklch(0.943 0.013 197);
-  --sidebar-border: oklch(0.3 0.045 198 / 30%);
-  --sidebar-ring: oklch(0.73 0.14 198);
+
+  --border: #c4dbea; /* [Your #C4DBEA] Soft icy border, non-distracting */
+  --input: #c4dbea;
+  --ring: #84c5ed; /* [Your #84C5ED] Arrow color for focus rings */
+
+  /* Charts */
+  --chart-1: #0b6fa4;
+  --chart-2: #84c5ed; /* [Your #84C5ED] */
+  --chart-3: #c4dbea; /* [Your #C4DBEA] */
+  --chart-4: #09182b; /* [Your #09182B] */
+  --chart-5: #38bdf8;
+
+  /* Sidebar */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #09182b;
+  --sidebar-primary: #0b6fa4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e7eff6;
+  --sidebar-accent-foreground: #09182b;
+  --sidebar-border: #c4dbea;
+  --sidebar-ring: #84c5ed;
+
+  /* Legacy Bridge Custom Variables */
+  --app-background: #f4f8fb;
+  --app-surface: #ffffff;
+  --app-muted-surface: #e7eff6;
+  --app-muted-hover: #d4dee4;
+  --app-text: #09182b;
+  --app-text-muted: #486581;
+  --app-border: #c4dbea;
+  --app-primary: #0b6fa4;
+  --app-primary-hover: #075077;
+  --app-primary-text: #0b6fa4;
 }
 
 .dark {
-  /* Your custom theme colors */
-  --background: oklch(
-    0.086 0.02 196
-  ); /* #091114 - rgb(9, 17, 20) - hsl(196, 38%, 6%) */
-  --foreground: oklch(
-    0.943 0.013 197
-  ); /* #ecf1f3 - rgb(236, 241, 243) - hsl(197, 23%, 94%) */
-  --card: oklch(
-    0.12 0.025 196
-  ); /* Slightly lighter than background for cards */
-  --card-foreground: oklch(0.943 0.013 197);
-  --popover: oklch(0.12 0.025 196);
-  --popover-foreground: oklch(0.943 0.013 197);
-  --primary: oklch(
-    0.801 0.052 198
-  ); /* #98c9de - rgb(152, 201, 222) - hsl(198, 51%, 73%) */
-  --primary-foreground: oklch(0.086 0.02 196);
-  --secondary: oklch(
-    0.425 0.08 198
-  ); /* #1a6382 - rgb(26, 99, 130) - hsl(198, 67%, 31%) */
-  --secondary-foreground: oklch(0.943 0.013 197);
-  --muted: oklch(0.15 0.028 196);
-  --muted-foreground: oklch(0.75 0.04 197); /* Softer text for muted elements */
-  --accent: oklch(
-    0.73 0.14 198
-  ); /* #22ade7 - rgb(34, 173, 231) - hsl(198, 80%, 52%) */
-  --accent-foreground: oklch(0.086 0.02 196);
-  --destructive: oklch(0.704 0.191 22.216); /* Keep the same red for errors */
-  --border: oklch(0.3 0.045 198 / 30%); /* #1a6382 with opacity for borders */
-  --input: oklch(0.3 0.045 198 / 40%);
-  --ring: oklch(0.73 0.14 198); /* Your accent color #22ade7 */
-  --chart-1: oklch(0.73 0.14 198); /* Match accent for charts */
-  --chart-2: oklch(0.801 0.052 198); /* Match primary */
-  --chart-3: oklch(0.425 0.08 198); /* Match secondary */
-  --chart-4: oklch(0.65 0.12 198);
-  --chart-5: oklch(0.7 0.1 198);
-  --sidebar: oklch(0.086 0.02 196); /* Match background */
-  --sidebar-foreground: oklch(0.943 0.013 197);
-  --sidebar-primary: oklch(0.73 0.14 198); /* #22ade7 - accent color */
-  --sidebar-primary-foreground: oklch(0.086 0.02 196);
-  --sidebar-accent: oklch(0.425 0.08 198); /* #1a6382 - secondary color */
-  --sidebar-accent-foreground: oklch(0.943 0.013 197);
-  --sidebar-border: oklch(0.3 0.045 198 / 30%);
-  /* All sidebar colors already defined above */
+  /* --- DARK MODE (Using Your Exact Palette) --- */
+  --background: #09182b; /* [Your #09182B] Deep midnight navy background */
+  --foreground: #f4f8fb; /* Crisp white/ice text */
+
+  --card: #10243c; /* Elevated deep ocean navy */
+  --card-foreground: #f4f8fb;
+
+  --popover: #10243c;
+  --popover-foreground: #f4f8fb;
+
+  --primary: #84c5ed; /* [Your #84C5ED] Glowing cyan/sky accent */
+  --primary-foreground: #09182b; /* Dark text on bright primary for readability */
+
+  --secondary: #173250; /* Sub-surface dark navy */
+  --secondary-foreground: #d4dee4;
+
+  --muted: #173250;
+  --muted-foreground: #8fa7be; /* Soft icy grey-blue muted text */
+
+  --accent: #1e4167;
+  --accent-foreground: #84c5ed;
+
+  --destructive: oklch(0.704 0.191 22.216);
+
+  --border: #1b3a5d;
+  --input: #1b3a5d;
+  --ring: #84c5ed; /* [Your #84C5ED] */
+
+  /* Charts */
+  --chart-1: #84c5ed; /* [Your #84C5ED] */
+  --chart-2: #c4dbea; /* [Your #C4DBEA] */
+  --chart-3: #38bdf8;
+  --chart-4: #60a5fa;
+  --chart-5: #d4dee4; /* [Your #D4DEE4] */
+
+  /* Sidebar */
+  --sidebar: #09182b;
+  --sidebar-foreground: #f4f8fb;
+  --sidebar-primary: #84c5ed;
+  --sidebar-primary-foreground: #09182b;
+  --sidebar-accent: #173250;
+  --sidebar-accent-foreground: #f4f8fb;
+  --sidebar-border: #1b3a5d;
+  --sidebar-ring: #84c5ed;
+
+  /* Legacy Bridge Custom Variables */
+  --app-background: #09182b;
+  --app-surface: #10243c;
+  --app-muted-surface: #173250;
+  --app-muted-hover: #1e4167;
+  --app-text: #f4f8fb;
+  --app-text-muted: #8fa7be;
+  --app-border: #1b3a5d;
+  --app-primary: #84c5ed;
+  --app-primary-hover: #c4dbea;
+  --app-primary-text: #84c5ed;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+[class*="bg-[#0f172a]"] {
+  background-color: var(--app-background);
+}
+
+[class*="bg-[#1e293b]"] {
+  background-color: var(--app-surface);
+}
+
+[class*="bg-[#334155]"] {
+  background-color: var(--app-muted-surface);
+}
+
+[class*="bg-[#475569]"] {
+  background-color: var(--app-muted-hover);
+}
+
+[class~="text-white"] {
+  color: var(--app-text);
+}
+
+[class~="text-gray-100"],
+[class~="text-gray-200"],
+[class~="text-gray-300"] {
+  color: var(--app-text);
+}
+
+[class~="text-gray-400"],
+[class~="text-gray-500"] {
+  color: var(--app-text-muted);
+}
+
+[class*="border-[#334155]"],
+[class*="border-[#4b5563]"] {
+  border-color: var(--app-border);
+}
+
+[class*="bg-[#818cf8]"] {
+  background-color: var(--app-primary);
+}
+
+[class*="bg-[#818cf8]"][class~="text-white"] {
+  color: var(--primary-foreground);
+}
+
+[class*="hover:bg-[#6366f1]"]:hover {
+  background-color: var(--app-primary-hover);
+}
+
+[class*="text-[#818cf8]"],
+[class*="text-[#a5b4fc]"] {
+  color: var(--app-primary-text);
+}
+
+[class*="border-[#818cf8]"],
+[class*="focus:border-[#818cf8]"]:focus {
+  border-color: var(--app-primary-text);
+}
+
+[class*="placeholder-gray-400"]::placeholder {
+  color: var(--app-text-muted);
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#f8fafc]"],
+:root:not(.dark) .dashboard-page [class*="text-[#e2e8f0]"] {
+  color: var(--dashboard-text);
+}
+
+:root:not(.dark) .dashboard-page {
+  --dashboard-text: #264d87;
+  --dashboard-link: #2e76c8;
+}
+
+:root:not(.dark) .dashboard-page [class~="text-white"],
+:root:not(.dark) .dashboard-page [class~="text-gray-100"],
+:root:not(.dark) .dashboard-page [class~="text-gray-200"],
+:root:not(.dark) .dashboard-page [class~="text-gray-300"] {
+  color: var(--dashboard-text);
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#94a3b8]"],
+:root:not(.dark) .dashboard-page [class*="text-[#64748b]"] {
+  color: var(--app-text-muted);
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#818cf8]"],
+:root:not(.dark) .dashboard-page [class*="text-[#6366f1]"] {
+  color: var(--dashboard-link);
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#22c55e]"],
+:root:not(.dark) .dashboard-page [class~="text-green-400"] {
+  color: #15803d;
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#ef4444]"],
+:root:not(.dark) .dashboard-page [class~="text-red-400"] {
+  color: #b42318;
+}
+
+:root:not(.dark) .dashboard-page [class*="text-[#a855f7]"] {
+  color: #7e22ce;
+}
+
+:root:not(.dark) .dashboard-page [class~="text-blue-400"] {
+  color: #1d4ed8;
+}
+
+:root:not(.dark) .dashboard-page [class~="text-amber-400"] {
+  color: #92400e;
+}
+
+:root:not(.dark)
+  .dashboard-page
+  [class*="bg-[#818cf8]"][class*="text-[#0f172a]"] {
+  color: #ffffff;
+}
+
+:root:not(.dark) .dashboard-page [class*="bg-[#ef4444]"][class~="text-white"] {
+  color: #ffffff;
 }

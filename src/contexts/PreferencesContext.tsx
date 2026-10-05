@@ -59,7 +59,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const saved = await upsertUserPreferences(user.id, { [key]: value });
+      const saved = await upsertUserPreferences(user.id, nextPreferences);
       setPreferences(saved);
       syncTheme(saved.dark_mode);
     } catch (error) {
@@ -79,7 +79,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const saved = await upsertUserPreferences(user.id, patch);
+      const saved = await upsertUserPreferences(user.id, nextPreferences);
       setPreferences(saved);
       syncTheme(saved.dark_mode);
     } catch (error) {

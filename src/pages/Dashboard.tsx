@@ -293,9 +293,8 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="dashboard-page flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Dashboard Content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           {/* Mobile Header */}
@@ -338,7 +337,7 @@ export default function DashboardPage() {
               </div>
               {/* Notification Bell with Dropdown */}
               <div className="relative">
-                <button 
+                <button
                   onClick={() => setShowNotifications(!showNotifications)}
                   className="relative p-2.5 bg-[#1e293b] rounded-xl border border-[#4b5563] hover:bg-[#334155] transition-colors"
                 >
@@ -349,14 +348,16 @@ export default function DashboardPage() {
                     </span>
                   )}
                 </button>
-                
+
                 {/* Notification Dropdown */}
                 {showNotifications && (
                   <div className="absolute right-0 mt-2 w-80 bg-[#1e293b] border border-[#4b5563] rounded-xl shadow-2xl z-50 overflow-hidden">
                     <div className="p-4 border-b border-[#4b5563] flex items-center justify-between">
-                      <h3 className="font-semibold text-white">Notifications</h3>
+                      <h3 className="font-semibold text-white">
+                        Notifications
+                      </h3>
                       {unreadCount > 0 && (
-                        <button 
+                        <button
                           onClick={markAllAsRead}
                           className="text-xs text-[#818cf8] hover:text-[#6366f1]"
                         >
@@ -371,11 +372,11 @@ export default function DashboardPage() {
                         </div>
                       ) : (
                         notifications.map((notification) => (
-                          <div 
+                          <div
                             key={notification.id}
                             onClick={() => markAsRead(notification.id)}
                             className={`p-4 border-b border-[#334155] hover:bg-[#334155] cursor-pointer transition-colors ${
-                              !notification.read ? 'bg-[#273449]' : ''
+                              !notification.read ? "bg-[#273449]" : ""
                             }`}
                           >
                             <div className="flex items-start gap-3">
@@ -383,7 +384,9 @@ export default function DashboardPage() {
                                 <span className="w-2 h-2 bg-[#818cf8] rounded-full mt-1.5 shrink-0"></span>
                               )}
                               <div className="flex-1">
-                                <p className={`text-sm ${notification.read ? 'text-gray-400' : 'text-white'}`}>
+                                <p
+                                  className={`text-sm ${notification.read ? "text-gray-400" : "text-white"}`}
+                                >
                                   {notification.message}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
@@ -403,28 +406,28 @@ export default function DashboardPage() {
 
           <div className="p-4 md:p-6 lg:px-8 lg:pb-8">
             {/* Stats Cards - 8px grid spacing, perfect alignment */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 w-full max-w-full">
-              {/* Current Balance - Primary metric */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 mb-6 md:mb-8 w-full">
+              {/* Current Balance - Hero / Primary Metric */}
               <motion.div
                 custom={0}
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="sm:col-span-2 lg:col-span-1 bg-linear-to-br from-[#818cf8] to-[#6366f1] backdrop-blur-lg rounded-2xl border border-[#818cf8]/30 p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="sm:col-span-2 lg:col-span-1 bg-card text-card-foreground rounded-xl border border-border p-5 shadow-xs hover:border-primary/40 transition-colors duration-200"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-white" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Wallet className="w-4 h-4 text-primary" />
                   </div>
-                  <span className="flex items-center gap-1 text-xs font-semibold text-white bg-white/20 px-2.5 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
                     <ArrowUpRight className="w-3 h-3" />
-                    Available Now
+                    Available
                   </span>
                 </div>
-                <h3 className="text-xs md:text-sm font-medium text-white/80 uppercase tracking-wide mb-1.5">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                   Current Balance
                 </h3>
-                <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-tight">
+                <p className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                   {formatCurrency(totalBalance)}
                 </p>
               </motion.div>
@@ -435,20 +438,21 @@ export default function DashboardPage() {
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="bg-card text-card-foreground rounded-xl border border-border p-5 shadow-xs hover:border-emerald-500/40 transition-colors duration-200"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 bg-[#22c55e]/20 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-[#22c55e]" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <span className="px-2.5 py-1 text-xs font-semibold text-green-400 bg-green-500/20 rounded-lg">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
+                    <ArrowUpRight className="w-3 h-3" />
                     Earned
                   </span>
                 </div>
-                <h3 className="text-xs md:text-sm font-medium text-[#94a3b8] uppercase tracking-wide mb-1.5">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                   Earned This Month
                 </h3>
-                <p className="text-xl md:text-2xl lg:text-3xl font-bold text-[#f8fafc] leading-tight">
+                <p className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                   {formatCurrency(
                     monthlyRegularIncome + oneTimeIncomeThisMonth,
                   )}
@@ -461,21 +465,21 @@ export default function DashboardPage() {
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="bg-card text-card-foreground rounded-xl border border-border p-5 shadow-xs hover:border-rose-500/40 transition-colors duration-200"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 bg-[#ef4444]/20 rounded-xl flex items-center justify-center">
-                    <ArrowDownRight className="w-5 h-5 text-[#ef4444]" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-lg bg-rose-500/10 flex items-center justify-center">
+                    <ArrowDownRight className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                   </div>
-                  <span className="flex items-center gap-1 text-xs font-semibold text-[#ef4444] bg-[#ef4444]/10 px-2.5 py-1 rounded-lg">
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md">
                     <ArrowDownRight className="w-3 h-3" />
                     Spent
                   </span>
                 </div>
-                <h3 className="text-xs md:text-sm font-medium text-[#94a3b8] uppercase tracking-wide mb-1.5">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                   Monthly Expenses
                 </h3>
-                <p className="text-xl md:text-2xl lg:text-3xl font-bold text-[#f8fafc] leading-tight">
+                <p className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                   {formatCurrency(monthlyExpenses)}
                 </p>
               </motion.div>
@@ -486,14 +490,18 @@ export default function DashboardPage() {
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="sm:col-span-2 lg:col-span-1 bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="sm:col-span-2 lg:col-span-1 bg-card text-card-foreground rounded-xl border border-border p-5 shadow-xs hover:border-sky-500/40 transition-colors duration-200"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-11 h-11 bg-[#a855f7]/20 rounded-xl flex items-center justify-center">
-                    <PieChart className="w-5 h-5 text-[#a855f7]" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-9 h-9 rounded-lg bg-sky-500/10 flex items-center justify-center">
+                    <PieChart className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                   </div>
                   <span
-                    className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg ${monthlyBudget >= 0 ? "text-[#22c55e] bg-[#22c55e]/10" : "text-[#ef4444] bg-[#ef4444]/10"}`}
+                    className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md border ${
+                      monthlyBudget >= 0
+                        ? "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                        : "text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20"
+                    }`}
                   >
                     {monthlyBudget >= 0 ? (
                       <ArrowUpRight className="w-3 h-3" />
@@ -503,17 +511,15 @@ export default function DashboardPage() {
                     Forecast
                   </span>
                 </div>
-                <h3 className="text-xs md:text-sm font-medium text-[#94a3b8] uppercase tracking-wide mb-1.5">
+                <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
                   Monthly Budget
                 </h3>
-                <p
-                  className={`text-xl md:text-2xl lg:text-3xl font-bold leading-tight ${monthlyBudget >= 0 ? "text-green-400" : "text-red-400"}`}
-                >
+                <p className="text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
                   {formatCurrency(monthlyBudget)}
                 </p>
               </motion.div>
             </div>
-
+            
             {/* Upcoming Income Section */}
             {upcomingIncome.length > 0 && (
               <motion.div
@@ -521,59 +527,69 @@ export default function DashboardPage() {
                 variants={fadeInVariants}
                 initial="hidden"
                 animate="visible"
-                className="mb-6 md:mb-8 bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="mb-6 md:mb-8 bg-card backdrop-blur-lg rounded-2xl border border-border p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
               >
                 <div className="flex items-center justify-between mb-5 md:mb-6">
-                  <h3 className="text-base md:text-lg font-semibold text-[#f8fafc]">
+                  <h3 className="text-base md:text-lg font-semibold text-card-foreground">
                     📅 Upcoming Income
                   </h3>
+
                   <button
                     onClick={() => navigate("/income")}
-                    className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10"
+                    className="text-xs md:text-sm text-primary hover:text-primary/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
                   >
                     View All Income
                   </button>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {upcomingIncome.map((income) => (
                     <div
                       key={income.id}
-                      className="p-4 bg-[#0f172a]/50 rounded-xl border border-[#4b5563]/50"
+                      className="p-4 bg-background/50 rounded-xl border border-border/50"
                     >
                       <div className="flex items-center justify-between mb-3">
-                        <p className="font-medium text-[#f8fafc] text-sm">
+                        <p className="font-medium text-card-foreground text-sm">
                           {income.description}
                         </p>
+
                         <span
-                          className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            income.is_monthly
+                              ? "bg-amber-500/20 text-amber-700"
+                              : "bg-gray-500/20 text-gray-600"
+                          }`}
                         >
                           {income.is_monthly ? "Monthly" : "One-time"}
                         </span>
                       </div>
+
                       <div className="flex items-center justify-between">
-                        <p className="text-xs text-[#94a3b8]">
+                        <p className="text-xs text-muted-foreground">
                           Expected: {new Date(income.date).toLocaleDateString()}
                         </p>
-                        <p className="text-sm font-bold text-blue-400">
+
+                        <p className="text-sm font-bold text-primary">
                           {formatCurrency(income.amount)}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 pt-4 border-t border-[#4b5563]">
+
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#94a3b8]">
+                    <span className="text-sm font-medium text-muted-foreground">
                       Total Expected This Month
                     </span>
-                    <span className="text-lg font-bold text-blue-400">
+
+                    <span className="text-lg font-bold text-primary">
                       {formatCurrency(totalUpcomingIncome)}
                     </span>
                   </div>
                 </div>
               </motion.div>
             )}
-
             {/* Main Grid - Recent Transactions & Budget Progress - Proper responsive columns */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-6 w-full max-w-full">
               {/* Recent Transactions - Takes 2/3 of space on large screens */}
@@ -585,12 +601,12 @@ export default function DashboardPage() {
                 className="xl:col-span-2 bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
               >
                 <div className="flex items-center justify-between mb-5 md:mb-6">
-                  <h3 className="text-base md:text-lg font-semibold text-[#f8fafc]">
+                  <h3 className="text-base md:text-lg font-semibold text-foreground">
                     Recent Transactions
                   </h3>
                   <button
                     onClick={() => navigate("/transactions")}
-                    className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10"
+                    className="text-xs md:text-sm text-primary hover:text-primary/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
                   >
                     View All
                   </button>
@@ -654,12 +670,12 @@ export default function DashboardPage() {
                 className="bg-[#1e293b] backdrop-blur-lg rounded-2xl border border-[#4b5563] p-5 md:p-6 shadow-xl hover:shadow-2xl transition-shadow duration-300"
               >
                 <div className="flex items-center justify-between mb-5 md:mb-6">
-                  <h3 className="text-base md:text-lg font-semibold text-[#f8fafc]">
+                  <h3 className="text-base md:text-lg font-semibold text-foreground">
                     Budget Progress
                   </h3>
                   <button
                     onClick={() => navigate("/budgets")}
-                    className="text-xs md:text-sm text-[#818cf8] hover:text-[#818cf8]/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-[#818cf8]/10"
+                    className="text-xs md:text-sm text-primary hover:text-primary/80 font-semibold transition-colors px-3 py-1.5 rounded-lg hover:bg-primary/10"
                   >
                     Edit
                   </button>

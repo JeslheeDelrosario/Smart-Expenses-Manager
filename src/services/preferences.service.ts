@@ -20,11 +20,10 @@ export async function fetchUserPreferences(userId: string): Promise<UserPreferen
 
 export async function upsertUserPreferences(
   userId: string,
-  preferences: Partial<UserPreferences>,
+  preferences: UserPreferences,
 ): Promise<UserPreferences> {
   const payload = {
     user_id: userId,
-    ...defaultPreferences,
     ...preferences,
   };
 

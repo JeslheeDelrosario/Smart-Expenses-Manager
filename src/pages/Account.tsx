@@ -131,7 +131,7 @@ export default function AccountPage() {
       {/* Main Content */}
       <main className="flex-1 min-w-0">
         {/* Header */}
-        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-6 py-4">
+        <header className="bg-[#1e293b]/50 backdrop-blur-sm border-b border-[#4b5563] px-8 py-6.5 ">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <MobileMenuButton
@@ -139,7 +139,7 @@ export default function AccountPage() {
               >
                 <Menu className="w-6 h-6" />
               </MobileMenuButton>
-              <h1 className="text-2xl font-bold text-white">My Account</h1>
+              <h1 className="text-3xl font-bold text-white">My Account</h1>
             </div>
           </div>
         </header>

@@ -55,7 +55,7 @@ export default function ToastContainer({ toasts, dismiss }: ToastContainerProps)
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="flex-1 text-sm font-medium text-[#f1f5f9]"
+                  className="flex-1 text-sm font-medium text-foreground"
                 >
                   {t.message}
                 </motion.p>

@@ -179,23 +179,34 @@ export default function IncomePage() {
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="lg:hidden sticky top-0 z-40 bg-[#0f172a]/95 backdrop-blur-lg border-b border-[#4b5563] p-4 flex items-center justify-between">
             <h1 className="text-xl font-bold text-[#f8fafc]">ExpenseTracker</h1>
-            <MobileMenuButton toggle className="p-2.5 rounded-xl hover:bg-[#334155] transition-colors duration-200">
+            <MobileMenuButton
+              toggle
+              className="p-2.5 rounded-xl hover:bg-[#334155] transition-colors duration-200"
+            >
               <Menu className="w-6 h-6 text-[#e2e8f0]" />
             </MobileMenuButton>
           </div>
 
-          <div className="hidden lg:flex sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-sm px-8 py-4 border-b border-[#4b5563]/50 -mx-4 mt-0 mb-6 pb-3">
+          <div className="hidden lg:flex items-center sticky top-0 z-30 bg-[#0f172a]/90 backdrop-blur-sm px-8 py-4 border-b border-[#4b5563]/50 -mx-4 mt-0 mb-6 pb-3">
             <div>
               <h1 className="text-2xl font-bold text-white">Income Tracker</h1>
               <p className="text-gray-400 mt-1">
                 Current Balance:{" "}
-                <span className={`font-semibold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}>
+                <span
+                  className={`font-semibold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}
+                >
                   {formatCurrency(currentBalance)}
                 </span>
               </p>
             </div>
-            <button onClick={() => { setShowAddModal(true); resetForm(); }} className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors">
-              <Plus className="w-5 h-5" />
+            <button
+              onClick={() => {
+                setShowAddModal(true);
+                resetForm();
+              }}
+              className="ml-auto flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-[#818cf8] text-white rounded-md hover:bg-[#6366f1] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
               Add Income
             </button>
           </div>
@@ -203,63 +214,165 @@ export default function IncomePage() {
           <div className="p-6">
             <div className="p-6">
               {loading ? (
-                <div className="text-center py-12 text-gray-400">Loading income data...</div>
+                <div className="text-center py-12 text-gray-400">
+                  Loading income data...
+                </div>
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                      <p className="text-sm text-gray-400 mb-2">Current Balance</p>
-                      <p className={`text-2xl font-bold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}>{formatCurrency(currentBalance)}</p>
+                      <p className="text-sm text-gray-400 mb-2">
+                        Current Balance
+                      </p>
+                      <p
+                        className={`text-2xl font-bold ${currentBalance >= 0 ? "text-green-400" : "text-red-400"}`}
+                      >
+                        {formatCurrency(currentBalance)}
+                      </p>
                     </div>
                     <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                      <p className="text-sm text-gray-400 mb-2">Total Received</p>
-                      <p className="text-2xl font-bold text-green-400">{formatCurrency(receivedIncomes.reduce((sum, i) => sum + i.amount, 0))}</p>
+                      <p className="text-sm text-gray-400 mb-2">
+                        Total Received
+                      </p>
+                      <p className="text-2xl font-bold text-green-400">
+                        {formatCurrency(
+                          receivedIncomes.reduce((sum, i) => sum + i.amount, 0),
+                        )}
+                      </p>
                     </div>
                     <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                      <p className="text-sm text-gray-400 mb-2">Incoming (Pending)</p>
-                      <p className="text-2xl font-bold text-blue-400">{formatCurrency(pendingIncomes.reduce((sum, i) => sum + i.amount, 0))}</p>
+                      <p className="text-sm text-gray-400 mb-2">
+                        Incoming (Pending)
+                      </p>
+                      <p className="text-2xl font-bold text-blue-400">
+                        {formatCurrency(
+                          pendingIncomes.reduce((sum, i) => sum + i.amount, 0),
+                        )}
+                      </p>
                     </div>
                     <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] p-6">
-                      <p className="text-sm text-gray-400 mb-2">Monthly Income</p>
-                      <p className="text-2xl font-bold text-amber-400">{formatCurrency(receivedIncomes.filter((i) => i.is_monthly).reduce((sum, i) => sum + i.amount, 0))}</p>
+                      <p className="text-sm text-gray-400 mb-2">
+                        Monthly Income
+                      </p>
+                      <p className="text-2xl font-bold text-amber-400">
+                        {formatCurrency(
+                          receivedIncomes
+                            .filter((i) => i.is_monthly)
+                            .reduce((sum, i) => sum + i.amount, 0),
+                        )}
+                      </p>
                     </div>
                   </div>
 
                   {pendingIncomes.length > 0 && (
                     <div className="mb-8">
-                      <h2 className="text-xl font-bold text-white mb-4">📥 Incoming Income (Pending)</h2>
+                      <h2 className="text-xl font-bold text-white mb-4">
+                        📥 Incoming Income (Pending)
+                      </h2>
                       <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-[#4b5563]">
-                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
-                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Expected Date</th>
-                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
-                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
-                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                                Source
+                              </th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                                Expected Date
+                              </th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">
+                                Monthly?
+                              </th>
+                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">
+                                Amount
+                              </th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">
+                                Actions
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#4b5563]">
                             {pendingIncomes.map((income) => (
-                              <tr key={income.id} className="hover:bg-[#334155]/50">
-                                <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
-                                <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
+                              <tr
+                                key={income.id}
+                                className="hover:bg-[#334155]/50"
+                              >
+                                <td className="px-6 py-4 text-sm font-medium text-white">
+                                  {income.description}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-300">
+                                  {new Date(income.date).toLocaleDateString()}
+                                </td>
                                 <td className="px-6 py-4 text-center">
-                                  <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}>
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}
+                                  >
                                     {income.is_monthly ? "Monthly" : "One-time"}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 text-sm font-semibold text-right text-blue-400">{formatCurrency(income.amount)}</td>
+                                <td className="px-6 py-4 text-sm font-semibold text-right text-blue-400">
+                                  {formatCurrency(income.amount)}
+                                </td>
                                 <td className="px-6 py-4">
                                   <div className="flex items-center justify-center gap-2">
-                                    <button onClick={() => markAsReceived(income.id)} className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors" title="Mark as received">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                    <button
+                                      onClick={() => markAsReceived(income.id)}
+                                      className="p-2 text-green-400 hover:bg-green-400/10 rounded-lg transition-colors"
+                                      title="Mark as received"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M5 13l4 4L19 7"
+                                        />
+                                      </svg>
                                     </button>
-                                    <button onClick={() => handleEdit(income)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Edit">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <button
+                                      onClick={() => handleEdit(income)}
+                                      className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                      title="Edit"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                        />
+                                      </svg>
                                     </button>
-                                    <button onClick={() => confirmDelete(income.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <button
+                                      onClick={() => confirmDelete(income.id)}
+                                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                      title="Delete"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                      </svg>
                                     </button>
                                   </div>
                                 </td>
@@ -272,28 +385,51 @@ export default function IncomePage() {
                   )}
 
                   <div>
-                    <h2 className="text-xl font-bold text-white mb-4">✅ Received Income</h2>
+                    <h2 className="text-xl font-bold text-white mb-4">
+                      ✅ Received Income
+                    </h2>
                     <div className="bg-[#1e293b] rounded-xl border border-[#4b5563] overflow-hidden">
                       {receivedIncomes.length === 0 ? (
-                        <p className="text-center py-12 text-gray-400">No income recorded yet. Add your first income!</p>
+                        <p className="text-center py-12 text-gray-400">
+                          No income recorded yet. Add your first income!
+                        </p>
                       ) : (
                         <table className="w-full">
                           <thead>
                             <tr className="border-b border-[#4b5563]">
-                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Source</th>
-                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">Date</th>
-                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Monthly?</th>
-                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">Amount</th>
-                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">Actions</th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                                Source
+                              </th>
+                              <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300">
+                                Date
+                              </th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">
+                                Monthly?
+                              </th>
+                              <th className="px-6 py-4 text-right text-sm font-semibold text-gray-300">
+                                Amount
+                              </th>
+                              <th className="px-6 py-4 text-center text-sm font-semibold text-gray-300">
+                                Actions
+                              </th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[#4b5563]">
                             {receivedIncomes.map((income) => (
-                              <tr key={income.id} className="hover:bg-[#334155]/50">
-                                <td className="px-6 py-4 text-sm font-medium text-white">{income.description}</td>
-                                <td className="px-6 py-4 text-sm text-gray-300">{new Date(income.date).toLocaleDateString()}</td>
+                              <tr
+                                key={income.id}
+                                className="hover:bg-[#334155]/50"
+                              >
+                                <td className="px-6 py-4 text-sm font-medium text-white">
+                                  {income.description}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-300">
+                                  {new Date(income.date).toLocaleDateString()}
+                                </td>
                                 <td className="px-6 py-4 text-center">
-                                  <span className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}>
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs ${income.is_monthly ? "bg-amber-500/20 text-amber-400" : "bg-gray-500/20 text-gray-400"}`}
+                                  >
                                     {income.is_monthly ? "Monthly" : "One-time"}
                                   </span>
                                 </td>
@@ -305,11 +441,45 @@ export default function IncomePage() {
                                 </td>
                                 <td className="px-6 py-4">
                                   <div className="flex items-center justify-center gap-2">
-                                    <button onClick={() => handleEdit(income)} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors" title="Edit">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <button
+                                      onClick={() => handleEdit(income)}
+                                      className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                      title="Edit"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                        />
+                                      </svg>
                                     </button>
-                                    <button onClick={() => confirmDelete(income.id)} className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Delete">
-                                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <button
+                                      onClick={() => confirmDelete(income.id)}
+                                      className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                      title="Delete"
+                                    >
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                        />
+                                      </svg>
                                     </button>
                                   </div>
                                 </td>
@@ -326,43 +496,153 @@ export default function IncomePage() {
 
             {showAddModal && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-full max-w-md bg-[#1e293b] rounded-xl border border-[#4b5563] shadow-2xl"
+                >
                   <div className="flex items-center justify-between p-6 border-b border-[#4b5563]">
-                    <h2 className="text-xl font-bold text-white">{editingIncome ? "Edit Income" : "Add New Income"}</h2>
-                    <button onClick={() => { setShowAddModal(false); resetForm(); }} className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]">
+                    <h2 className="text-xl font-bold text-white">
+                      {editingIncome ? "Edit Income" : "Add New Income"}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowAddModal(false);
+                        resetForm();
+                      }}
+                      className="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-[#334155]"
+                    >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                   <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Income Source</label>
-                      <input type="text" required value={formData.source} onChange={(e) => setFormData({ ...formData, source: e.target.value })} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="e.g., Salary, Freelance" />
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Income Source
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.source}
+                        onChange={(e) =>
+                          setFormData({ ...formData, source: e.target.value })
+                        }
+                        className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
+                        placeholder="e.g., Salary, Freelance"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
-                      <input type="text" inputMode="numeric" required value={formData.amount} onChange={handleAmountChange} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]" placeholder="25,000.00" />
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Amount
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        required
+                        value={formData.amount}
+                        onChange={handleAmountChange}
+                        className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#818cf8]"
+                        placeholder="25,000.00"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Date</label>
-                      <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white focus:outline-none focus:border-[#818cf8]" />
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={formData.date}
+                        onChange={(e) =>
+                          setFormData({ ...formData, date: e.target.value })
+                        }
+                        className="w-full px-4 py-3 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white focus:outline-none focus:border-[#818cf8]"
+                      />
                     </div>
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="is_pending" checked={formData.is_pending} onChange={(e) => setFormData({ ...formData, is_pending: e.target.checked })} className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]" />
-                      <label htmlFor="is_pending" className="text-sm font-medium text-gray-300">This is incoming (not yet received)</label>
+                      <input
+                        type="checkbox"
+                        id="is_pending"
+                        checked={formData.is_pending}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            is_pending: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]"
+                      />
+                      <label
+                        htmlFor="is_pending"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        This is incoming (not yet received)
+                      </label>
                     </div>
                     <div className="flex items-center gap-3">
-                      <input type="checkbox" id="is_monthly" checked={formData.is_monthly} onChange={(e) => setFormData({ ...formData, is_monthly: e.target.checked })} className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]" />
-                      <label htmlFor="is_monthly" className="text-sm font-medium text-gray-300">This is monthly income</label>
+                      <input
+                        type="checkbox"
+                        id="is_monthly"
+                        checked={formData.is_monthly}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            is_monthly: e.target.checked,
+                          })
+                        }
+                        className="w-4 h-4 rounded border-[#4b5563] bg-[#0f172a] text-[#818cf8] focus:ring-[#818cf8]"
+                      />
+                      <label
+                        htmlFor="is_monthly"
+                        className="text-sm font-medium text-gray-300"
+                      >
+                        This is monthly income
+                      </label>
                     </div>
                     <div className="flex gap-3 pt-4">
-                      <button type="button" onClick={() => { setShowAddModal(false); resetForm(); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
-                      <button type="submit" disabled={isSubmitting} className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowAddModal(false);
+                          resetForm();
+                        }}
+                        className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1 px-4 py-3 bg-[#818cf8] text-white rounded-lg hover:bg-[#6366f1] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
                         {isSubmitting ? (
                           <>
-                            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z" /></svg>
+                            <svg
+                              className="animate-spin h-4 w-4"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                                fill="none"
+                              />
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938V17.29z"
+                              />
+                            </svg>
                             Saving...
                           </>
-                        ) : editingIncome ? "Update Income" : "Add Income"}
+                        ) : editingIncome ? (
+                          "Update Income"
+                        ) : (
+                          "Add Income"
+                        )}
                       </button>
                     </div>
                   </form>
@@ -377,14 +657,37 @@ export default function IncomePage() {
 
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="w-full max-w-md bg-[#1e293b] border border-[#4b5563] rounded-2xl shadow-2xl overflow-hidden"
+          >
             <div className="p-6 border-b border-[#4b5563]">
               <h3 className="text-xl font-bold text-white">Delete Income</h3>
-              <p className="text-gray-400 mt-2">Are you sure you want to delete this income entry? This action cannot be undone.</p>
+              <p className="text-gray-400 mt-2">
+                Are you sure you want to delete this income entry? This action
+                cannot be undone.
+              </p>
             </div>
             <div className="p-6 flex gap-3">
-              <button type="button" onClick={() => { setShowDeleteModal(false); setIncomeToDelete(null); }} className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors">Cancel</button>
-              <button type="button" onClick={executeDelete} className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Delete</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setIncomeToDelete(null);
+                }}
+                className="flex-1 px-4 py-3 border border-[#4b5563] text-gray-300 rounded-lg hover:bg-[#334155] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={executeDelete}
+                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </motion.div>
         </div>

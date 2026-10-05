@@ -19,6 +19,7 @@ import { SUPPORTED_CURRENCIES } from "../lib/currency";
 import { updatePassword } from "../services/auth";
 import { requestPushPermission } from "../services/push.service";
 import { useToast } from "../components/useToast";
+import ToastContainer from "../components/ToastContainer";
 import AppLayout, { MobileMenuButton } from "../components/AppLayout";
 import { usePreferences } from "../hooks/usePreferences";
 
@@ -51,7 +52,7 @@ export default function SettingsPage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const { toast } = useToast();
+  const { toasts, toast, dismiss } = useToast();
 
   const tabs = [
     { id: "preferences", label: "Preferences" },
@@ -64,6 +65,12 @@ export default function SettingsPage() {
 
   const handleToggle = async (key: keyof typeof preferences, currentValue: boolean) => {
     await updatePreference(key, !currentValue);
+  };
+
+  const handleCurrencyChange = async (currencyCode: string) => {
+    await updatePreference("currency", currencyCode);
+    const currencyLabel = currencies.find((currency) => currency.code === currencyCode)?.label ?? currencyCode;
+    toast(`Currency changed to ${currencyLabel}.`, "success");
   };
 
   const handlePushToggle = async () => {
@@ -218,7 +225,7 @@ export default function SettingsPage() {
                     <select
                       disabled={preferencesLoading}
                       value={preferences.currency}
-                      onChange={(e) => void updatePreference("currency", e.target.value)}
+                      onChange={(e) => void handleCurrencyChange(e.target.value)}
                       className="w-full sm:w-auto px-3 py-2 bg-[#0f172a] border border-[#4b5563] rounded-lg text-white text-sm focus:outline-none focus:border-[#818cf8] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {currencies.map((c) => (
@@ -556,6 +563,7 @@ export default function SettingsPage() {
             </motion.div>
           )}
         </div>
+        <ToastContainer toasts={toasts} dismiss={dismiss} />
       </main>
     </AppLayout>
   );
